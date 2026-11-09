@@ -8,7 +8,9 @@
 #                                     personal CA (then pair with sc_auth; docs/macos-login.md)
 #   scripts/ca.sh yubikey LABEL       issue-docsign + issue-login for one YubiKey
 #   scripts/ca.sh crl                 re-sign every CA's revocation list (yearly)
-#   scripts/ca.sh revoke CA SERIAL    revoke a cert issued by CA (root|personal), then re-sign CRLs
+#   scripts/ca.sh revoke CA SERIAL [REASON]
+#                                     revoke a cert issued by CA (root|personal), then re-sign CRLs;
+#                                     REASON: keyCompromise (default), superseded, cessationOfOperation
 #   scripts/ca.sh new-intermediate NAME "Common Name"
 #                                     another CA under the root (needs a [NAME_ca] section in pki/openssl.cnf)
 #   scripts/ca.sh notation            add the root fingerprint, the Keyoxide profile link and
@@ -189,7 +191,10 @@ cmd_issue_docsign() {
   if (( major > 5 || (major == 5 && minor >= 7) )); then alg=RSA3072; else alg=RSA2048; fi
   echo "YubiKey $serial_no, firmware $fw: using $alg"
   local Y=(ykman --device "$serial_no")
-  "${Y[@]}" piv keys generate --algorithm "$alg" --pin-policy ALWAYS --touch-policy ALWAYS \
+  # PIN once per session, touch on every signature. PIN-every-time ("ALWAYS")
+  # breaks signing through macOS's built-in smart-card support, which Acrobat
+  # uses; the touch still means nothing signs without a finger on the key.
+  "${Y[@]}" piv keys generate --algorithm "$alg" --pin-policy ONCE --touch-policy ALWAYS \
     9c "$RAM/9c.pub"
   say "Creating a signing request with the new key (PIN + touch)"
   "${Y[@]}" piv certificates request 9c "$RAM/9c.pub" "$RAM/9c.csr" -s "CN=Benjamin Soyka"
@@ -236,9 +241,9 @@ cmd_crl() {
 }
 
 cmd_revoke() {
-  local ca="${1:?ca}" serial="${2:?serial}"
+  local ca="${1:?ca}" serial="${2:?serial}" reason="${3:-keyCompromise}"
   CA_KEY="$(ca_key "$ca")" "$OPENSSL" ca -config "$CNF" -name "${ca}_ca" \
-    -revoke "pki/ca/$ca/newcerts/$serial.pem" -crl_reason keyCompromise
+    -revoke "pki/ca/$ca/newcerts/$serial.pem" -crl_reason "$reason"
   cmd_crl
 }
 

@@ -9,6 +9,10 @@
    "revoked": null,
    "created": "2026-08-21",
    "private_key": "Held. Everyday parts on a hardware security key; full key in an offline, passphrase-protected backup.",
+   "certified_by": [
+    "Previous PGP key (2021-2026), 2026-08-21, on ben@bensoyka.com, soyka006@umn.edu",
+    "Wikipedia PGP key, 2026-08-21, on ben@bensoyka.com, soyka006@umn.edu"
+   ],
    "uids": [
     "Benjamin Soyka <ben@bensoyka.com>",
     "Ben Soyka <soyka006@umn.edu>",
@@ -40,6 +44,9 @@
    "revoked": null,
    "created": "2022-12-24",
    "private_key": "Held, in an offline, passphrase-protected backup.",
+   "certified_by": [
+    "Previous PGP key (2021-2026), 2022-12-24, on bsoyka.wikipedia@gmail.com"
+   ],
    "uids": [
     "Bsoyka <bsoyka.wikipedia@gmail.com>"
    ],
@@ -59,6 +66,9 @@
    "revoked": "2026-08-21",
    "created": "2021-01-24",
    "private_key": "Held offline, encrypted to my main key, only to decrypt old messages.",
+   "certified_by": [
+    "Main PGP key, 2026-08-21, on hello@bsoyka.me, Benjamin Soyka, bensoyka6@gmail.com, soyka006@umn.edu"
+   ],
    "uids": [
     "Benjamin Soyka <hello@bsoyka.me>",
     "Benjamin Soyka <bensoyka@icloud.com>",
@@ -83,6 +93,7 @@
    "revoked": "2025-07-19",
    "created": "2020-06-15",
    "private_key": "Held offline, passphrase-protected, only to decrypt old messages.",
+   "certified_by": [],
    "uids": [
     "Benjamin Soyka <bensoyka@icloud.com>"
    ],

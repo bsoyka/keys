@@ -177,3 +177,9 @@ li + li { margin-top: 0.5em; }
 
 details { margin-top: 1.25rem; }
 summary { cursor: pointer; font-weight: 600; margin-bottom: 0.75rem; color: var(--muted); }
+
+/* per-key "More details" */
+details.more { margin-top: 0.6rem; }
+details.more summary { font-size: 0.875rem; font-weight: 500; color: var(--primary); margin: 0; }
+details.more[open] summary { margin-bottom: 0.25rem; }
+details.more dl { margin-top: 0.25rem; }

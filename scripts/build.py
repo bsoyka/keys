@@ -70,6 +70,8 @@ class PgpKey:
     revoked: str | None = None
     uids: list[tuple[str, bool]] = field(default_factory=list)  # (uid, revoked)
     subkeys: list[SubKey] = field(default_factory=list)
+    # Valid certifications by other keys: {signer key ID: {"signer", "date", "uids"}}
+    certs: dict[str, dict] = field(default_factory=dict)
 
 
 ALGOS = {"1": "rsa", "18": "cv25519", "19": "ecdsa", "22": "ed25519"}
@@ -111,11 +113,39 @@ def load_pgp(meta: dict, gnupghome: str) -> PgpKey:
         elif f[0] == "uid":
             uid = re.sub(r"\\x([0-9a-f]{2})", lambda m: chr(int(m.group(1), 16)), f[9])
             key.uids.append((uid, f[1] == "r"))
+    # Certifications from other keys. Every key file is imported before this runs
+    # (see main), so signatures between my own keys can be checked ("!" = valid).
+    sigs = run("gpg", "--batch", "--with-colons", "--fixed-list-mode",
+               "--check-sigs", fp_from_name, env=env)
+    uid = None
+    for line in sigs.splitlines():
+        f = line.split(":")
+        if f[0] == "uid":
+            uid = re.sub(r"\\x([0-9a-f]{2})", lambda m: chr(int(m.group(1), 16)), f[9])
+        elif f[0] == "sub":
+            uid = None
+        elif f[0] == "sig" and uid and f[1] == "!" and f[10][:2] in ("10", "11", "12", "13") \
+                and not fp_from_name.endswith(f[4]):
+            c = key.certs.setdefault(f[4], {"signer": f[9], "date": ts(f[5]), "uids": []})
+            c["date"] = min(c["date"], ts(f[5]))
+            if uid not in c["uids"]:
+                c["uids"].append(uid)
     m = re.search(r"^pub .*\[revoked: (\d{4}-\d{2}-\d{2})\]", human, re.M)
     key.revoked = m.group(1) if m else None
     if key.fpr != fp_from_name:
         sys.exit(f"{path}: file name doesn't match fingerprint {key.fpr}")
     return key
+
+
+def cert_lines(k: PgpKey, pgp: list[PgpKey]) -> list[str]:
+    """'Previous PGP key (2021-2026), 2026-08-21, on ben@…, soyka006@…' per certifier."""
+    out = []
+    for kid, c in sorted(k.certs.items(), key=lambda kv: kv[1]["date"]):
+        mine = next((o for o in pgp if o.fpr.endswith(kid)), None)
+        who = mine.meta["title"] if mine else f"{c['signer']} ({kid})"
+        emails = ", ".join(re.sub(r".*<(.*)>.*", r"\1", u) for u in c["uids"])
+        out.append(f"{who}, {c['date']}, on {emails}")
+    return out
 
 
 # ------------------------------------------------------------------ X.509
@@ -210,6 +240,8 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
         for s in k.subkeys:
             caps = "/".join(CAPS[c] for c in s.caps if c in CAPS)
             a(f"  Subkey:      {s.fpr}  {caps}, {s.algo}" + (f", expires {s.expires}" if s.expires else ""))
+        for i, line in enumerate(cert_lines(k, pgp)):
+            a(f"  {'Certified:' if i == 0 else '':<12} {line}")
         if k.meta.get("private_key"):
             a(f"  Private key: {k.meta['private_key']}")
         a(f"  Download:    {site}/{k.meta['file']}")
@@ -315,6 +347,7 @@ def keys_json(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -
         "primary": primary.fpr,
         "pgp": [{"fpr": k.fpr, "title": k.meta["title"], "status": status(k), "file": k.meta["file"],
                  "revoked": k.revoked, "created": k.created, "private_key": k.meta.get("private_key"),
+                 "certified_by": cert_lines(k, pgp),
                  "uids": [u for u, _ in k.uids],
                  "subkeys": [{"fpr": s.fpr, "caps": s.caps, "expires": s.expires} for s in k.subkeys]}
                 for k in pgp],
@@ -345,18 +378,23 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
 
     def pgp_item(k: PgpKey) -> str:
         st = k.meta["status"]
-        rows = [row("Fingerprint", fp(group4(k.fpr)))]
-        rows.append(row("Identities", "<br>".join(e(u) for u, _ in k.uids)))
+        rows = [row("Fingerprint", fp(group4(k.fpr))),
+                row("Download", f'<a href="/{k.meta["file"]}">{k.fpr[-16:]}.asc</a>')]
+        more = [row("Identities", "<br>".join(e(u) for u, _ in k.uids))]
         when = f"Created {k.created}"
         if k.revoked:
             when += f", retired {k.revoked}"
         elif k.subkeys and k.subkeys[0].expires:
             when += f", renewed before {k.subkeys[0].expires}"
-        rows.append(row("Dates", when))
+        more.append(row("Dates", when))
+        if k.subkeys:
+            more.append(row("Parts", "<br>".join(
+                f"{'/'.join(CAPS[c] for c in s.caps if c in CAPS)}: <code class=\"fp\">{s.fpr}</code>" for s in k.subkeys)))
+        if k.certs:
+            more.append(row("Vouched for by", "<br>".join(e(l) for l in cert_lines(k, pgp))))
         if k.meta.get("private_key"):
-            rows.append(row("Private key", e(k.meta["private_key"])))
-        rows.append(row("Download", f'<a href="/{k.meta["file"]}">{k.fpr[-16:]}.asc</a>'))
-        return item(k.meta["title"], st, k.meta["use"], rows)
+            more.append(row("Private key", e(k.meta["private_key"])))
+        return item(k.meta["title"], st, k.meta["use"], rows, more)
 
     def cert_item(c: Cert, title: str, use: str, status: str, extra: list[str] = ()) -> str:
         if not c.present:
@@ -367,30 +405,35 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
         for k, label in (("attestation", "attestation"), ("attestation_intermediate", "attestation chain")):
             if c.meta.get(k) and (PUBLIC / c.meta[k]).exists():
                 links.append(f'<a href="/{c.meta[k]}">{label}</a>')
-        rows = [row("SHA-256", fp(c.sha256)), row("SHA-1", fp(c.sha1)),
-                row("Valid", f"{c.not_before} to {c.not_after}")]
+        rows = [row("SHA-256", fp(c.sha256)), row("Download", " · ".join(links + list(extra)))]
+        more = [row("SHA-1", fp(c.sha1)), row("Valid", f"{c.not_before} to {c.not_after}"),
+                row("Subject", e(c.subject))]
+        if c.issuer != c.subject:
+            more.append(row("Issued by", e(c.issuer)))
         if c.meta.get("private_key"):
-            rows.append(row("Private key", e(c.meta["private_key"])))
-        rows.append(row("Download", " · ".join(links + list(extra))))
-        return item(title, status, use, rows)
+            more.append(row("Private key", e(c.meta["private_key"])))
+        return item(title, status, use, rows, more)
 
-    def item(title: str, status: str, use: str, rows: list[str]) -> str:
+    def item(title: str, status: str, use: str, rows: list[str], more: list[str] = ()) -> str:
+        extra = (f'<details class="more"><summary>More details</summary><dl>{"".join(more)}</dl></details>'
+                 if more else "")
         return (f'<article class="key"><h3>{e(title)} {pill(status)}</h3>'
-                f'<p>{e(" ".join(use.split()))}</p><dl>{"".join(rows)}</dl></article>')
+                f'<p>{e(" ".join(use.split()))}</p><dl>{"".join(rows)}</dl>{extra}</article>')
 
     current = [pgp_item(primary)]
     current += [cert_item(c, c.meta["title"], c.meta["use"], "current") for c in certs
                 if c.meta["status"] == "current"]
     current.append(item("SSH key", "current", "The authentication part of my main PGP key.",
-                        [row("Key", f'<code class="fp">{e(ssh)}</code>'),
-                         row("Fingerprint", fp(ssh_fingerprint(ssh))),
-                         row("Download", '<a href="/ssh.txt">ssh.txt</a>')]))
+                        [row("Fingerprint", fp(ssh_fingerprint(ssh))),
+                         row("Download", '<a href="/ssh.txt">ssh.txt</a>')],
+                        [row("Key", f'<code class="fp">{e(ssh)}</code>')]))
     if wiki:
         current.append(pgp_item(wiki))
     old = [pgp_item(k) for k in pgp if k.meta["status"] == "revoked"]
     old += [cert_item(c, c.meta["title"], c.meta["use"], c.meta["status"]) for c in certs
             if c.meta["status"] in ("retired", "compromised")]
-    old += [item(i["title"], "retired", i["use"], []) for i in cfg.get("legacy", [])]
+    old += [item(i["title"], "retired", i["use"], [],
+                 [row("Private key", e(i["private_key"]))] if i.get("private_key") else []) for i in cfg.get("legacy", [])]
 
     root_sha1 = fp(root.sha1) if root.present else "<em>(listed below once issued)</em>"
 
@@ -522,6 +565,9 @@ def main() -> None:
     BUILD.mkdir(exist_ok=True)
     with tempfile.TemporaryDirectory() as gh:
         os.chmod(gh, 0o700)
+        for m in cfg["pgp"]:  # all first, so cross-certifications can be checked
+            run("gpg", "--batch", "--quiet", "--import", str(PUBLIC / m["file"]),
+                env={**os.environ, "GNUPGHOME": gh})
         pgp = [load_pgp(m, gh) for m in cfg["pgp"]]
         primary = next(k for k in pgp if k.meta.get("alias"))
         ssh = ssh_line(primary.meta["ssh_subkey"], gh)

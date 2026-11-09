@@ -162,8 +162,9 @@ my encrypted backups, but not decrypt them without one of the age keys.</p>
 Decrypt: <code>age -d -i KEY doomsday.tar.gz.age | tar xz</code></p>"""), b"(handwritten)"))
 
     # 0. Cover
-    root_sha = run("openssl", "x509", "-in", str(ROOT / "public/pki/root.crt"), "-noout",
-                   "-fingerprint", "-sha256").decode().split("=", 1)[1].strip()
+    # root.crt is published as DER; hash the bytes directly (no openssl variant quirks).
+    h = hashlib.sha256((ROOT / "public/pki/root.crt").read_bytes()).hexdigest().upper()
+    root_sha = ":".join(h[k:k + 2] for k in range(0, 64, 2))
     ages = [l.strip() for l in (ROOT / "public/age/backups.txt").read_text().splitlines() if l.startswith("age1")]
     rows = "".join(f"<tr><td>{i}</td><td>{e(t)}</td><td><code>{short_sha(d) if i != 4 else 'handwritten'}</code></td></tr>"
                    for i, (t, _, d) in enumerate(sheets, 1))

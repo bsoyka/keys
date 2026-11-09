@@ -9,10 +9,10 @@ DNS records live in bsoyka/infra, not here.
 The CloudFront certificate needs a DNS validation record before it can be used.
 
 1. `terraform init && terraform apply -target=aws_acm_certificate.site`
-2. `terraform output dns_records` (the `validation` entry exists now). Add that
+2. `terraform apply -refresh-only` then `terraform output dns_validation_record`. Add that
    CNAME to bsoyka/infra `dns/zones-bensoyka-com.tf` (DNS-only) and apply there.
 3. `terraform apply`. It waits for validation, then creates CloudFront.
-4. `terraform output dns_records` again; add the `site` CNAME (keys.bensoyka.com →
+4. `terraform output dns_site_record`; add that CNAME (keys.bensoyka.com →
    the CloudFront domain, DNS-only) to bsoyka/infra and apply.
 
 After that, `make deploy` from the repo root uploads the site.

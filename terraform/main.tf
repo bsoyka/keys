@@ -172,13 +172,16 @@ output "distribution_id" {
 }
 
 # Records for bsoyka/infra dns/zones-bensoyka-com.tf (both DNS-only, not proxied).
-output "dns_records" {
-  value = {
-    validation = [for o in aws_acm_certificate.site.domain_validation_options : {
-      name    = trimsuffix(o.resource_record_name, ".")
-      type    = o.resource_record_type
-      content = trimsuffix(o.resource_record_value, ".")
-    }]
-    site = { name = local.host, type = "CNAME", content = aws_cloudfront_distribution.site.domain_name }
-  }
+# Separate outputs so the validation record is available after phase 1, before
+# CloudFront exists.
+output "dns_validation_record" {
+  value = [for o in aws_acm_certificate.site.domain_validation_options : {
+    name    = trimsuffix(o.resource_record_name, ".")
+    type    = o.resource_record_type
+    content = trimsuffix(o.resource_record_value, ".")
+  }]
+}
+
+output "dns_site_record" {
+  value = { name = local.host, type = "CNAME", content = aws_cloudfront_distribution.site.domain_name }
 }

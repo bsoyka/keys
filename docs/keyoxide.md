@@ -24,7 +24,7 @@ linked both ways too: the profile claims `openpgp4fpr:bc48…`, and the key carr
 | Main PGP key | `openpgp4fpr:bc4876bdc8ab5ab8c9cb81659497e30583d68d89` | notation on the key (automatic) |
 | bensoyka.com | `dns:bensoyka.com?type=TXT` | apex TXT `aspe:keys.bensoyka.com:<fp>`, in bsoyka/infra |
 | bsoyka.me | `dns:bsoyka.me?type=TXT` | apex TXT `aspe:keys.bensoyka.com:<fp>`, in bsoyka/infra |
-| GitHub | `https://gist.github.com/bsoyka/<gist id>` | a public gist (below) |
+| GitHub | `https://gist.github.com/bsoyka/cba00e8777bcccad246129bcb2e7e15d` | public gist with `proof.md` |
 
 ## Setting up GitHub
 

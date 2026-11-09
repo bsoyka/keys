@@ -18,8 +18,10 @@
 #                                     safe to re-run
 #   scripts/ca.sh asp-init            create the Keyoxide profile key and sign data/asp.toml (once)
 #   scripts/ca.sh asp-sign            re-sign the Keyoxide profile after editing data/asp.toml
-#   scripts/ca.sh paper               build the printable paper backup set (scripts/paper.py) on
-#                                     the RAM disk, open it to print, then destroy it
+#   scripts/ca.sh paper [letters]     build the printable paper backup set (scripts/paper.py) on
+#                                     the RAM disk, open it to print, then destroy it; "letters"
+#                                     also opens all four split-key letters (needs bsoyka/sirloin
+#                                     cloned at $SIRLOIN_DIR, default ~/personal/sirloin)
 #
 # Hierarchy: Root CA (offline, signs only intermediates)
 #            └─ Personal CA (offline, signs only my certs) └─ 9c document-signing cert
@@ -308,10 +310,13 @@ cmd_paper() {
     command -v "$t" >/dev/null || { echo "brew install ${t/zbarimg/zbar}" >&2; exit 1; }
   done
   local page
-  page=$(py scripts/paper.py "$DOOMSDAY" "$RAM/paper")
-  say "Print it: 2 copies of pages 1-4 (cover, master key, revocation, CA keys), 1 copy of page 5 (Proton)"
+  local out
+  out=$(SIRLOIN_DIR="${SIRLOIN_DIR:-$HOME/personal/sirloin}" py scripts/paper.py "$DOOMSDAY" "$RAM/paper" "${1:-}")
+  say "Print: 2 copies of pages 1-4 (cover, master key, revocation, CA keys);"
+  echo "1 copy each of page 5 (Proton) and page 6 (my split-key letter), both for the apartment only."
+  [[ "${1:-}" == letters ]] && echo "letters.html: one page per friend's copy; write each half in by hand."
   echo "Safari: File > Print, Letter, scale 100%, no headers/footers. Don't save a PDF."
-  open -a Safari "$page"
+  while read -r f; do open -a Safari "$f"; done <<< "$out"
   pause "When the printer has finished,"
   osascript -e 'tell application "Safari" to close (every tab of every window whose URL contains "PKIRAM")' 2>/dev/null || true
   cancel -a -x 2>/dev/null || true   # drop any job data CUPS kept
@@ -334,7 +339,7 @@ main() {
     notation)         cmd_notation ;;
     asp-init)         cmd_asp_init ;;
     asp-sign)         cmd_asp_sign ;;
-    paper)            cmd_paper; exit 0 ;;
+    paper)            cmd_paper "$@"; exit 0 ;;
     ceremony)
       cmd_init_root
       cmd_new_intermediate personal "Benjamin Soyka Personal CA"

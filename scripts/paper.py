@@ -10,6 +10,12 @@ Sheets:
   2. PGP revocation certificate
   3. CA and Keyoxide keys (each already encrypted to the PGP key)
   4. Proton access (blank lines, filled in by hand; never printed with values)
+  5. My copy (A-2) of the split-key letter, if the private bsoyka/sirloin repo is
+     at $SIRLOIN_DIR (default ~/personal/sirloin). With a third argument
+     "letters", all four copies also go to letters.html for reprinting.
+
+The letter template lives in bsoyka/sirloin, not here, because it has personal
+details (family phone numbers, friends' names) and this repo is public.
 
 Key decisions:
 - Nothing printed is usable on its own: the master key needs its memorized
@@ -31,10 +37,12 @@ import base64
 import datetime
 import hashlib
 import html
+import os
 import shutil
 import subprocess
 import sys
 import tempfile
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -159,14 +167,38 @@ my encrypted backups, but not decrypt them without one of the age keys.</p>
 <dt>Recovery phrase</dt><dd>{line * 4}</dd><dt>2FA backup codes</dt><dd>{line * 3}</dd>
 <dt>Last checked</dt><dd>{line}</dd></dl>
 <p class="fine">Files: doomsday.tar.gz.age and vault.tar.gz.age in Proton Drive's root.
-Decrypt: <code>age -d -i KEY doomsday.tar.gz.age | tar xz</code></p>"""), b"(handwritten)"))
+Decrypt: <code>age -d -i KEY doomsday.tar.gz.age | tar xz</code></p>"""), None))
+
+    # 5. Split-key letters (template and copies from the private sirloin repo)
+    letters: list[str] = []
+    sirloin = Path(os.environ.get("SIRLOIN_DIR", Path.home() / "personal" / "sirloin")) / "letter"
+    if (sirloin / "letter.html").exists():
+        tpl = (sirloin / "letter.html").read_text()
+        tpl = tpl[tpl.index("-->") + 3:] if tpl.lstrip().startswith("<!--") else tpl
+        copies = tomllib.loads((sirloin / "copies.toml").read_text())["copy"]
+        col = lambda h: "".join(f"<li>{e(c['holder'])} ({c['id']})</li>" for c in copies if c["half"] == h)
+        table = (f'<table class="halves"><tr><th>Has the first half</th><th>Has the second half</th></tr>'
+                 f'<tr><td><ul>{col("first")}</ul></td><td><ul>{col("second")}</ul></td></tr></table>')
+        for c in copies:
+            body = (tpl.replace("{{COPY}}", c["id"]).replace("{{HALF}}", c["half"])
+                    .replace("{{TABLE}}", table).replace("{{UPDATED}}", str(datetime.date.today())))
+            letters.append(f'<article class="sheet letter">{body}</article>')
+            if c.get("mine"):
+                sheets.append((f"Split-key letter, my copy ({c['id']})", sheet(
+                    f"Split-key letter ({c['id']})",
+                    "one copy, fireproof folder (apartment) only: this replaces the separate "
+                    f"{c['id']} envelope. Write the {c['half']} half in by hand, then cover it. "
+                    "<b>Not in the El Paso set.</b>",
+                    f'<div class="letter">{body}</div>'), None))
+    else:
+        print(f"note: no letter template at {sirloin}; skipping the split-key letter", file=sys.stderr)
 
     # 0. Cover
     # root.crt is published as DER; hash the bytes directly (no openssl variant quirks).
     h = hashlib.sha256((ROOT / "public/pki/root.crt").read_bytes()).hexdigest().upper()
     root_sha = ":".join(h[k:k + 2] for k in range(0, 64, 2))
     ages = [l.strip() for l in (ROOT / "public/age/backups.txt").read_text().splitlines() if l.startswith("age1")]
-    rows = "".join(f"<tr><td>{i}</td><td>{e(t)}</td><td><code>{short_sha(d) if i != 4 else 'handwritten'}</code></td></tr>"
+    rows = "".join(f"<tr><td>{i}</td><td>{e(t)}</td><td><code>{short_sha(d) if d is not None else 'handwritten'}</code></td></tr>"
                    for i, (t, _, d) in enumerate(sheets, 1))
     cover = sheet("Paper backup set", "with every copy of this set.", f"""
 <h2>Paper backup set</h2>
@@ -189,7 +221,7 @@ fades and runs when wet, so keep the pages in plastic sleeves.</p>""")
 
     out.mkdir(parents=True, exist_ok=True)
     page = out / "paper.html"
-    page.write_text(f"""<!doctype html><html><head><meta charset="utf-8"><title>Paper backup set</title>
+    html_doc = f"""<!doctype html><html><head><meta charset="utf-8"><title>Paper backup set</title>
 <style>
 @page {{ size: letter; margin: 0.55in; }}
 body {{ font: 10.5pt/1.4 -apple-system, "Helvetica Neue", sans-serif; color: #000; margin: 0; }}
@@ -210,12 +242,25 @@ pre {{ font-size: 7.6pt; line-height: 1.3; white-space: pre-wrap; word-break: br
 table {{ border-collapse: collapse; width: 100%; }} td, th {{ border-bottom: 1px solid #999; text-align: left; padding: 3pt; font-size: 9.5pt; }}
 dl.ids dt, dl.form dt {{ font-weight: 600; margin-top: 6pt; }} dl.ids dd, dl.form dd {{ margin: 0; }}
 .blank {{ border-bottom: 1px solid #000; height: 26pt; }}
+.letter {{ font-size: 9.5pt; line-height: 1.28; }}
+.letter h2 {{ font-size: 13pt; margin: 3pt 0; }} .letter h3 {{ font-size: 10.5pt; margin: 7pt 0 2pt; }}
+.letter p, .letter ul, .letter ol {{ margin: 3pt 0; }} .letter li {{ margin: 1pt 0; }}
+.letter pre {{ font-size: 8.5pt; margin: 3pt 0; }}
+.eyebrow {{ font-size: 8.5pt; margin: 0; }}
+.urls code {{ font-size: 9pt; }}
+.keybox {{ border: 1.5px dashed #000; height: 0.85in; margin: 5pt 0; position: relative; }}
+.keybox span {{ position: absolute; left: 6pt; top: 3pt; font-size: 7.5pt; }}
+table.halves th, table.halves td {{ border: 1px solid #000; width: 50%; vertical-align: top; }}
+table.halves ul {{ margin: 0; padding-left: 14pt; }}
 @media screen {{ body {{ max-width: 7.4in; margin: 20px auto; }} .sheet {{ border-bottom: 3px dashed #999; padding-bottom: 20px; margin-bottom: 20px; }} }}
 </style></head><body>
-{cover}
-{''.join(h for _, h, _ in sheets)}
+<!--BODY-->
 </body></html>
-""")
+"""
+    page.write_text(html_doc.replace("<!--BODY-->", cover + "".join(h for _, h, _ in sheets)))
+    if len(sys.argv) > 3 and sys.argv[3] == "letters" and letters:
+        (out / "letters.html").write_text(html_doc.replace("<!--BODY-->", "".join(letters)))
+        print(out / "letters.html")
     print(page)
 
 

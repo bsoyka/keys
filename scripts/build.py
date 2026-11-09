@@ -145,6 +145,19 @@ class Cert:
     sha1: str = ""
 
 
+def readable_dn(rfc2253: str) -> str:
+    """'C=US,emailAddress=x@y,CN=Name' -> 'Name <x@y>' (country dropped: it's always US)."""
+    parts = dict(p.split("=", 1) for p in re.split(r"(?<!\\),", rfc2253))
+    out = parts.get("CN", rfc2253)
+    return out + (f" <{parts['emailAddress']}>" if "emailAddress" in parts else "")
+
+
+def iso(openssl_date: str) -> str:
+    import datetime as dt
+
+    return dt.datetime.strptime(openssl_date, "%b %d %H:%M:%S %Y %Z").strftime("%Y-%m-%d")
+
+
 def load_cert(meta: dict) -> Cert:
     path = PUBLIC / meta["file"]
     if not path.exists():
@@ -160,11 +173,11 @@ def load_cert(meta: dict) -> Cert:
     return Cert(
         meta,
         present=True,
-        subject=x("-subject", "-nameopt", "RFC2253").split("=", 1)[1],
-        issuer=x("-issuer", "-nameopt", "RFC2253").split("=", 1)[1],
+        subject=readable_dn(x("-subject", "-nameopt", "RFC2253").split("=", 1)[1]),
+        issuer=readable_dn(x("-issuer", "-nameopt", "RFC2253").split("=", 1)[1]),
         serial=x("-serial").split("=", 1)[1],
-        not_before=x("-startdate").split("=", 1)[1],
-        not_after=x("-enddate").split("=", 1)[1],
+        not_before=iso(x("-startdate").split("=", 1)[1]),
+        not_after=iso(x("-enddate").split("=", 1)[1]),
         sha256=fp("sha256"),
         sha1=fp("sha1"),
     )
@@ -241,7 +254,7 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
         if c.issuer != c.subject:
             a(f"  Issuer:      {c.issuer}")
         a(f"  Serial:      {c.serial}")
-        a(f"  Valid:       {c.not_before}  to  {c.not_after}")
+        a(f"  Valid:       {c.not_before} to {c.not_after}")
         a(f"  SHA-256:     {c.sha256}")
         a(f"  SHA-1:       {c.sha1}   (what Acrobat shows)")
         a(f"  Download:    {site}/{c.meta['file']}")
@@ -314,6 +327,11 @@ code,pre{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:va
 code{padding:1px 5px;word-break:break-all}pre{padding:10px 12px;overflow-x:auto;white-space:pre-wrap;word-break:break-all}
 dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;margin:.6rem 0}dt{color:var(--muted)}dd{margin:0;min-width:0}
 ol li{margin:.3rem 0}
+.quick{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin:1.4rem 0}
+.quick a{display:block;text-decoration:none;color:var(--fg);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.quick a:hover{border-color:var(--accent)}.quick b{display:block;color:var(--accent)}.quick span{font-size:.88rem;color:var(--muted)}
+details{margin:2.5rem 0 0}summary{cursor:pointer;font-size:1.1rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:1rem}
+details[open] summary{margin-bottom:1rem}
 """
 
 
@@ -385,6 +403,12 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
 <p class="lede">{e(o['name'])} · <a href="mailto:{e(o['email'])}">{e(o['email'])}</a></p>
 <p>Everything I use to sign, encrypt and authenticate, in one place. The signed
 <a href="/keys.txt">keys.txt</a> is the authoritative version of this page.</p>
+<nav class="quick">
+<a href="/pgp.asc"><b>PGP key</b><span>Encrypt to me or check my signatures</span></a>
+<a href="/ssh.txt"><b>SSH key</b><span>For authorized_keys</span></a>
+<a href="#acrobat"><b>PDF signatures</b><span>Trust my root in Acrobat</span></a>
+<a href="/keys.txt"><b>keys.txt</b><span>Signed list of everything here</span></a>
+</nav>
 
 <h2>Verify this page</h2>
 <pre>gpg --locate-keys {e(primary.meta['wkd'])}
@@ -395,7 +419,7 @@ fingerprint against another source you trust (my GitHub profile, a business card
 <h2>Current</h2>
 {''.join(cur)}
 
-<h2>Trust my document signatures in Acrobat</h2>
+<h2 id="acrobat">Trust my document signatures in Acrobat</h2>
 <ol>
 <li>Open a PDF I signed, click the signature, then <b>Signature Properties → Show Signer's Certificate</b>.</li>
 <li>Select the top certificate in the chain (my root CA) and check its SHA-1 fingerprint matches {root_fp}.</li>
@@ -406,14 +430,16 @@ for signed documents. Leave certified documents and dynamic content unticked.</l
 <b>Preferences → Signatures → Identities &amp; Trusted Certificates</b>{fdf}. My root can only issue certificates
 for me and can't create other CAs, and its key is kept offline.</p>
 
-<h2>Retired or revoked</h2>
-{''.join(old)}
+<details><summary>Retired or revoked ({len(old)})</summary>
+<p>Kept for verifying old signatures. Don't encrypt to these or newly trust them.</p>
+{''.join(old)}</details>
 
-<h2>Compromised</h2>
-{''.join(bad)}
+<details><summary>Compromised ({len(bad)})</summary>
+<p>Don't trust anything signed by these.</p>
+{''.join(bad)}</details>
 
-<h2>Legacy</h2>
-{''.join(legacy)}
+<details><summary>Legacy ({len(legacy)})</summary>
+{''.join(legacy)}</details>
 </main></body></html>
 """
 

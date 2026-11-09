@@ -20,7 +20,7 @@
 #   scripts/ca.sh asp-sign            re-sign the Keyoxide profile after editing data/asp.toml
 #   scripts/ca.sh paper [letters]     build the printable paper backup set (scripts/paper.py) on
 #                                     the RAM disk, open it to print, then destroy it; "letters"
-#                                     also opens all four split-key letters (needs bsoyka/sirloin
+#                                     also opens all four split-key letters and the envelope notes (needs bsoyka/sirloin
 #                                     cloned at $SIRLOIN_DIR, default ~/personal/sirloin)
 #
 # Hierarchy: Root CA (offline, signs only intermediates)
@@ -314,7 +314,7 @@ cmd_paper() {
   out=$(SIRLOIN_DIR="${SIRLOIN_DIR:-$HOME/personal/sirloin}" py scripts/paper.py "$DOOMSDAY" "$RAM/paper" "${1:-}")
   say "Print: 2 copies of pages 1-4 (cover, master key, revocation, CA keys);"
   echo "1 copy each of page 5 (Proton) and page 6 (my split-key letter), both for the apartment only."
-  [[ "${1:-}" == letters ]] && echo "letters.html: one page per friend's copy; write each half in by hand."
+  [[ "${1:-}" == letters ]] && echo "letters.html: one page per copy (write each half in by hand), then a page of envelope notes to cut out."
   echo "Safari: File > Print, Letter, scale 100%, no headers/footers. Don't save a PDF."
   while read -r f; do open -a Safari "$f"; done <<< "$out"
   pause "When the printer has finished,"

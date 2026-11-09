@@ -173,8 +173,9 @@ Decrypt: <code>age -d -i KEY doomsday.tar.gz.age | tar xz</code></p>"""), None))
     letters: list[str] = []
     sirloin = Path(os.environ.get("SIRLOIN_DIR", Path.home() / "personal" / "sirloin")) / "letter"
     if (sirloin / "letter.html").exists():
-        tpl = (sirloin / "letter.html").read_text()
-        tpl = tpl[tpl.index("-->") + 3:] if tpl.lstrip().startswith("<!--") else tpl
+        strip = lambda t: t[t.index("-->") + 3:] if t.lstrip().startswith("<!--") else t  # noqa: E731
+        tpl = strip((sirloin / "letter.html").read_text())
+        env = strip((sirloin / "envelope.html").read_text()) if (sirloin / "envelope.html").exists() else None
         copies = tomllib.loads((sirloin / "copies.toml").read_text())["copy"]
         col = lambda h: "".join(f"<li>{e(c['holder'])} ({c['id']})</li>" for c in copies if c["half"] == h)
         table = (f'<table class="halves"><tr><th>Has the first half</th><th>Has the second half</th></tr>'
@@ -190,6 +191,10 @@ Decrypt: <code>age -d -i KEY doomsday.tar.gz.age | tar xz</code></p>"""), None))
                     f"{c['id']} envelope. Write the {c['half']} half in by hand, then cover it. "
                     "<b>Not in the El Paso set.</b>",
                     f'<div class="letter">{body}</div>'), None))
+        if env:  # one page of cut-out envelope notes, one per copy
+            notes = "".join(f'<div class="env">{env.replace("{{TO}}", e(c.get("to", c["holder"]))).replace("{{COPY}}", c["id"]).replace("{{UPDATED}}", str(datetime.date.today()))}</div>'
+                            for c in copies if not c.get("mine"))  # mine lives in the paper set, no envelope
+            letters.append(f'<article class="sheet envelopes">{notes}</article>')
     else:
         print(f"note: no letter template at {sirloin}; skipping the split-key letter", file=sys.stderr)
 
@@ -252,6 +257,11 @@ dl.ids dt, dl.form dt {{ font-weight: 600; margin-top: 6pt; }} dl.ids dd, dl.for
 .keybox span {{ position: absolute; left: 6pt; top: 3pt; font-size: 7.5pt; }}
 table.halves th, table.halves td {{ border: 1px solid #000; width: 50%; vertical-align: top; }}
 table.halves ul {{ margin: 0; padding-left: 14pt; }}
+.envelopes .env {{ border: 1px dashed #000; height: 2.25in; padding: 10pt 14pt; margin-bottom: 0.12in; box-sizing: border-box; font-size: 9.5pt; line-height: 1.3; }}
+.env p {{ margin: 3pt 0; }}
+.env-to {{ font-size: 13pt; font-weight: 700; display: flex; justify-content: space-between; }}
+.env-to span {{ font-size: 8pt; font-weight: 400; }}
+.env-big {{ font-weight: 600; }}
 @media screen {{ body {{ max-width: 7.4in; margin: 20px auto; }} .sheet {{ border-bottom: 3px dashed #999; padding-bottom: 20px; margin-bottom: 20px; }} }}
 </style></head><body>
 <!--BODY-->

@@ -1,0 +1,77 @@
+# OpenSSL config for the personal root CA. Used by scripts/ceremony.sh and
+# scripts/renew-crl.sh; run those from the repo root (they set KEYS_REPO and
+# ROOT_KEY). The CA database (index.txt etc.) is public and lives in pki/ca/.
+#
+# Key decisions:
+# - Root is P-384, pathlen:0: it can sign end-entity certs only, never sub-CAs.
+# - Leaf certs get Digital Signature + Non-Repudiation only (no encipherment),
+#   and the three EKUs Acrobat/Office recognise for document signing.
+# - CRL/AIA URLs are plain http on purpose (standard practice: validators may
+#   not follow https for revocation data). These URLs are baked into every
+#   issued cert, so they must keep working for the life of those certs.
+# - Random serials (rand_serial), so no serial file to keep in sync.
+
+KEYS_REPO = .
+ROOT_KEY  = /nonexistent
+
+[ ca ]
+default_ca = root_ca
+
+[ root_ca ]
+dir               = $ENV::KEYS_REPO/pki/ca
+database          = $dir/index.txt
+new_certs_dir     = $dir/newcerts
+crlnumber         = $dir/crlnumber
+rand_serial       = yes
+# PEM copy for openssl; public/pki/root.crt is the same cert in DER (what the AIA URL serves)
+certificate       = $ENV::KEYS_REPO/pki/ca/root.pem
+private_key       = $ENV::ROOT_KEY
+default_md        = sha384
+default_days      = 1826
+default_crl_days  = 400
+policy            = policy_any
+copy_extensions   = none
+unique_subject    = no
+email_in_dn       = yes
+preserve          = yes
+crl_extensions    = crl_ext
+
+[ policy_any ]
+commonName        = supplied
+emailAddress      = optional
+organizationName  = optional
+countryName       = optional
+
+# ---- root self-signed cert (openssl req -x509) ----
+
+[ req ]
+prompt             = no
+distinguished_name = root_dn
+x509_extensions    = v3_root
+string_mask        = utf8only
+
+[ root_dn ]
+CN = Benjamin Soyka Personal Root CA
+O  = Benjamin Soyka
+C  = US
+
+[ v3_root ]
+basicConstraints     = critical, CA:TRUE, pathlen:0
+keyUsage             = critical, keyCertSign, cRLSign
+subjectKeyIdentifier = hash
+
+# ---- document-signing cert for YubiKey PIV slot 9c ----
+
+[ v3_docsign ]
+basicConstraints       = critical, CA:FALSE
+keyUsage               = critical, digitalSignature, nonRepudiation
+# emailProtection, Adobe Authentic Documents Trust, Microsoft Document Signing
+extendedKeyUsage       = emailProtection, 1.2.840.113583.1.1.5, 1.3.6.1.4.1.311.10.3.12
+subjectAltName         = email:ben@bensoyka.com
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always
+crlDistributionPoints  = URI:http://keys.bensoyka.com/pki/root.crl
+authorityInfoAccess    = caIssuers;URI:http://keys.bensoyka.com/pki/root.crt
+
+[ crl_ext ]
+authorityKeyIdentifier = keyid:always

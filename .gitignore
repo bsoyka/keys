@@ -1,0 +1,9 @@
+build/
+terraform/.terraform/
+terraform/*.tfstate*
+terraform/*.tfvars
+.DS_Store
+# never commit private keys, whatever they're called
+*.key
+*.p12
+*.pfx

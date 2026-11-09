@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Keys · Benjamin Soyka</title>
+<meta name="description" content="Public keys and certificates for Benjamin Soyka, and how to verify them.">
+<style>
+:root{--bg:#fbfaf7;--fg:#1d1d1b;--muted:#6b6a64;--card:#fff;--line:#e4e1d8;--accent:#2f5d50;--warn:#9a3b1c;--code:#f2f0ea}
+@media (prefers-color-scheme:dark){:root{--bg:#141413;--fg:#ecebe6;--muted:#9c9a92;--card:#1d1d1b;--line:#2e2d29;--accent:#7fb8a4;--warn:#e08a66;--code:#25241f}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 ui-sans-serif,system-ui,-apple-system,sans-serif}
+main{max-width:760px;margin:0 auto;padding:48px 16px 80px}h1{font-size:1.9rem;margin:0 0 .3rem}h2{font-size:1.1rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:2.5rem 0 1rem}
+p{margin:.5rem 0}a{color:var(--accent)}.lede{color:var(--muted)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin:0 0 14px}
+.card h3{margin:0 0 .4rem;font-size:1.05rem}.tag{font-size:.75rem;padding:1px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted);margin-left:6px;vertical-align:2px}
+.tag.compromised{color:var(--warn);border-color:var(--warn)}
+code,pre{font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--code);border-radius:6px}
+code{padding:1px 5px;word-break:break-all}pre{padding:10px 12px;overflow-x:auto;white-space:pre-wrap;word-break:break-all}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;margin:.6rem 0}dt{color:var(--muted)}dd{margin:0;min-width:0}
+ol li{margin:.3rem 0}
+</style></head><body><main>
+<h1>Keys &amp; certificates</h1>
+<p class="lede">Benjamin Soyka · <a href="mailto:ben@bensoyka.com">ben@bensoyka.com</a></p>
+<p>Everything I use to sign, encrypt and authenticate, in one place. The signed
+<a href="/keys.txt">keys.txt</a> is the authoritative version of this page.</p>
+
+<h2>Verify this page</h2>
+<pre>gpg --locate-keys ben@bensoyka.com
+curl -s https://keys.bensoyka.com/keys.txt | gpg --verify</pre>
+<p>The signature should come from <code>BC48 76BD C8AB 5AB8 C9CB  8165 9497 E305 83D6 8D89</code>. Check that
+fingerprint against another source you trust (my GitHub profile, a business card, me in person).</p>
+
+<h2>Current</h2>
+<div class="card"><h3>Primary PGP key<span class="tag">current</span></h3><p>My main identity key. Certify-only primary key kept offline; signing, encryption and authentication subkeys live on a YubiKey (touch required). Signs my Git commits, this manifest, and anything else I sign with PGP. The authentication subkey is my SSH key (see ssh.txt).</p><dl><dt>Fingerprint</dt><dd><code>BC48 76BD C8AB 5AB8 C9CB  8165 9497 E305 83D6 8D89</code></dd><dt>Created</dt><dd>2026-08-21</dd><dt>UIDs</dt><dd>Benjamin Soyka &lt;ben@bensoyka.com&gt;<br>Ben Soyka &lt;soyka006@umn.edu&gt;<br>Benjamin Soyka &lt;bensoyka6@gmail.com&gt;</dd><dt>Subkeys</dt><dd>Sign: <code>C7B826D38555AFA3AE7FA216F201E8FA2D72139F</code><br>Encrypt: <code>411A48120A5A2F1DC85CDD67AEE88FCE4521BF59</code><br>Auth: <code>4CD451BCEC8DB32C03B5026CC83BA4E193E4483E</code></dd><dt>Download</dt><dd><a href="/pgp.asc">pgp.asc</a> · <a href="/pgp/BC4876BDC8AB5AB8C9CB81659497E30583D68D89.asc">BC4876BDC8AB5AB8C9CB81659497E30583D68D89.asc</a></dd></dl></div><div class="card"><h3>Wikipedia PGP key<span class="tag">current</span></h3><p>Used only for Wikipedia-related correspondence as User:Bsoyka; also published on my Wikipedia user page. Rarely used, kept alive on purpose.</p><dl><dt>Fingerprint</dt><dd><code>13AB AA10 7960 069C 2D1B  F9D0 D193 7DCD F9A5 24BC</code></dd><dt>Created</dt><dd>2022-12-24</dd><dt>UIDs</dt><dd>Bsoyka &lt;bsoyka.wikipedia@gmail.com&gt;</dd><dt>Subkeys</dt><dd>Encrypt: <code>582908A0B8A1C66BACD0FBA48151FB3DB546C371</code></dd><dt>Download</dt><dd><a href="/pgp/13ABAA107960069C2D1BF9D0D1937DCDF9A524BC.asc">13ABAA107960069C2D1BF9D0D1937DCDF9A524BC.asc</a></dd></dl></div><div class="card"><h3>SSH key<span class="tag">current</span></h3><p>Authentication subkey of the primary PGP key.</p><dl><dt>Key</dt><dd><code>ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF9pJPHws9mluZNCA65sUu4TgH/1gKVVPUlW7vdqkNtN openpgp:0x93E4483E</code></dd><dt>Download</dt><dd><a href="/ssh.txt">ssh.txt</a></dd></dl></div><div class="card"><h3>Personal root CA<span class="tag">not issued yet</span></h3><p>My personal root certificate authority. Its key is kept offline and encrypted; it only issues my own signing certificates and can&#x27;t create sub-CAs. Trust this once and every document I sign verifies, including after certificate renewals.</p></div><div class="card"><h3>Document signing certificate (YubiKey PIV slot 9c)<span class="tag">not issued yet</span></h3><p>Signs PDFs (Adobe Acrobat and similar). Issued by the root above. The key was generated on the YubiKey and can&#x27;t be exported; the attestation below proves that against Yubico&#x27;s own CA. PIN and touch required for every signature.</p></div>
+
+<h2>Trust my document signatures in Acrobat</h2>
+<ol>
+<li>Open a PDF I signed, click the signature, then <b>Signature Properties → Show Signer's Certificate</b>.</li>
+<li>Select the top certificate in the chain (my root CA) and check its SHA-1 fingerprint matches listed above.</li>
+<li>On the <b>Trust</b> tab, click <b>Add to Trusted Certificates</b> and tick <b>Use this certificate as a trusted root</b>
+for signed documents. Leave certified documents and dynamic content unticked.</li>
+</ol>
+<p>Or download <a href="/pki/root.crt">root.crt</a> and import it under
+<b>Preferences → Signatures → Identities &amp; Trusted Certificates</b>. My root can only issue certificates
+for me and can't create other CAs, and its key is kept offline.</p>
+
+<h2>Retired or revoked</h2>
+<div class="card"><h3>Previous PGP key (2021-2026)<span class="tag">revoked 2026-08-21</span></h3><p>Rotated away from on 2026-08-21 as routine maintenance, not because of a compromise. Cross-certified with the current key, then revoked. Old signatures from it remain valid as history; don&#x27;t encrypt to it.</p><dl><dt>Fingerprint</dt><dd><code>0CA7 CC16 A64B 68F3 048E  E8FE A5E7 26D5 A652 28EA</code></dd><dt>Created</dt><dd>2021-01-24</dd><dt>UIDs</dt><dd>Benjamin Soyka &lt;hello@bsoyka.me&gt; <em>(revoked)</em><br>Benjamin Soyka &lt;bensoyka@icloud.com&gt; <em>(revoked)</em><br>Benjamin Soyka &lt;michael.soyka3@gmail.com&gt; <em>(revoked)</em><br>Benjamin Soyka <em>(revoked)</em><br>Benjamin Soyka &lt;bensoyka6@gmail.com&gt; <em>(revoked)</em><br>Benjamin Soyka &lt;soyka006@umn.edu&gt; <em>(revoked)</em></dd><dt>Subkeys</dt><dd>Encrypt: <code>EB2968D0F1DD9B0CB9767E907BED20103FBB4DB5</code></dd><dt>Download</dt><dd><a href="/pgp/0CA7CC16A64B68F3048EE8FEA5E726D5A65228EA.asc">0CA7CC16A64B68F3048EE8FEA5E726D5A65228EA.asc</a></dd></dl></div><div class="card"><h3>Original PGP key (2020-2025)<span class="tag">revoked 2025-07-19</span></h3><p>Revoked 2025-07-19. Listed for completeness.</p><dl><dt>Fingerprint</dt><dd><code>91FA 6964 6625 ECAB 5DE4  A697 3779 9464 147A 3418</code></dd><dt>Created</dt><dd>2020-06-15</dd><dt>Expires</dt><dd>2022-06-15</dd><dt>UIDs</dt><dd>Benjamin Soyka &lt;bensoyka@icloud.com&gt; <em>(revoked)</em></dd><dt>Subkeys</dt><dd>Encrypt: <code>287579F9963C99D75B1DF38B20A81F2E9E522C59</code></dd><dt>Download</dt><dd><a href="/pgp/91FA69646625ECAB5DE4A69737799464147A3418.asc">91FA69646625ECAB5DE4A69737799464147A3418.asc</a></dd></dl></div><div class="card"><h3>Self-signed signing certificate (Oct-Nov 2026)<span class="tag">retired</span></h3><p>Made in Acrobat before this root existed and used to sign a few documents. Not compromised; those signatures are genuine. Replaced by the root-issued certificate above.</p><dl><dt>Subject</dt><dd>C=US,emailAddress=ben@bensoyka.com,CN=Benjamin Soyka</dd><dt>Valid</dt><dd>Oct 30 22:57:16 2026 GMT → Oct 30 22:57:16 2031 GMT</dd><dt>SHA-256</dt><dd><code>56:6B:27:B1:A6:21:65:01:6B:68:EA:93:46:C1:46:CD:F9:CE:E5:93:C7:F5:41:F1:29:70:82:45:C2:E3:38:4B</code></dd><dt>SHA-1</dt><dd><code>B9:F8:0A:34:B3:72:E4:F9:F5:B2:EA:26:71:CA:34:CD:C1:ED:82:A6</code></dd><dt>Download</dt><dd><a href="/pki/retired/2026-10-30-selfsigned-9c.crt">2026-10-30-selfsigned-9c.crt</a></dd></dl></div>
+
+<h2>Compromised</h2>
+<div class="card"><h3>P-256 test certificate (Aug 2026)<span class="tag compromised">compromised</span></h3><p>A throwaway test certificate whose private key was later exposed. Never used for anything real. Treat any signature from it as not mine.</p><dl><dt>Subject</dt><dd>CN=Benjamin Soyka</dd><dt>Valid</dt><dd>Aug 24 00:49:56 2026 GMT → Aug 21 00:49:56 2036 GMT</dd><dt>SHA-256</dt><dd><code>05:6C:87:36:8D:AA:9A:FE:78:63:29:0C:0C:D2:4E:84:A4:62:13:83:D7:EA:31:5D:AF:00:95:52:95:E7:32:BA</code></dd><dt>SHA-1</dt><dd><code>E9:7B:60:49:4F:0C:BE:1C:71:10:CF:C4:BF:F2:5C:9F:54:A1:7D:40</code></dd><dt>Download</dt><dd><a href="/pki/compromised/2026-08-24-p256-test.crt">2026-08-24-p256-test.crt</a></dd></dl></div>
+
+<h2>Legacy</h2>
+<div class="card"><h3>Keybase (keybase.io/bsoyka)<span class="tag">legacy</span></h3><p>Legacy. The proof at bsoyka.me/keybase.txt stays up so old verifications don&#x27;t break, but Keybase isn&#x27;t maintained and this manifest supersedes it.</p></div>
+</main></body></html>

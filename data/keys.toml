@@ -1,0 +1,94 @@
+# Source of truth for what each key is. scripts/build.py reads this plus the
+# key/cert files under public/ and generates keys.txt, index.html, WKD and ssh.txt.
+# Fingerprints are never typed here: they're computed from the files.
+
+[owner]
+name = "Benjamin Soyka"
+email = "ben@bensoyka.com"
+site = "https://keys.bensoyka.com"
+
+# ---------------------------------------------------------------- PGP
+
+[[pgp]]
+file = "pgp/BC4876BDC8AB5AB8C9CB81659497E30583D68D89.asc"
+status = "current"
+title = "Primary PGP key"
+use = """
+My main identity key. Certify-only primary key kept offline; signing,
+encryption and authentication subkeys live on a YubiKey (touch required).
+Signs my Git commits, this manifest, and anything else I sign with PGP.
+The authentication subkey is my SSH key (see ssh.txt)."""
+wkd = "ben@bensoyka.com"
+alias = "pgp.asc"   # stable URL for "my current key"
+ssh_subkey = "4CD451BCEC8DB32C03B5026CC83BA4E193E4483E"
+
+[[pgp]]
+file = "pgp/13ABAA107960069C2D1BF9D0D1937DCDF9A524BC.asc"
+status = "current"
+title = "Wikipedia PGP key"
+use = """
+Used only for Wikipedia-related correspondence as User:Bsoyka; also
+published on my Wikipedia user page. Rarely used, kept alive on purpose."""
+
+[[pgp]]
+file = "pgp/0CA7CC16A64B68F3048EE8FEA5E726D5A65228EA.asc"
+status = "revoked"
+title = "Previous PGP key (2021-2026)"
+use = """
+Rotated away from on 2026-08-21 as routine maintenance, not because of a
+compromise. Cross-certified with the current key, then revoked. Old
+signatures from it remain valid as history; don't encrypt to it."""
+
+[[pgp]]
+file = "pgp/91FA69646625ECAB5DE4A69737799464147A3418.asc"
+status = "revoked"
+title = "Original PGP key (2020-2025)"
+use = "Revoked 2025-07-19. Listed for completeness."
+
+# ---------------------------------------------------------------- X.509
+
+[pki]
+root = "pki/root.crt"
+crl = "pki/root.crl"
+root_use = """
+My personal root certificate authority. Its key is kept offline and
+encrypted; it only issues my own signing certificates and can't create
+sub-CAs. Trust this once and every document I sign verifies, including
+after certificate renewals."""
+
+[[x509]]
+file = "pki/certs/docsign-current.crt"
+status = "current"
+title = "Document signing certificate (YubiKey PIV slot 9c)"
+use = """
+Signs PDFs (Adobe Acrobat and similar). Issued by the root above. The key
+was generated on the YubiKey and can't be exported; the attestation below
+proves that against Yubico's own CA. PIN and touch required for every
+signature."""
+attestation = "pki/attestation/docsign-current-attest.crt"
+attestation_intermediate = "pki/attestation/docsign-current-f9.crt"
+
+[[x509]]
+file = "pki/retired/2026-10-30-selfsigned-9c.crt"
+status = "retired"
+title = "Self-signed signing certificate (Oct-Nov 2026)"
+use = """
+Made in Acrobat before this root existed and used to sign a few documents.
+Not compromised; those signatures are genuine. Replaced by the root-issued
+certificate above."""
+
+[[x509]]
+file = "pki/compromised/2026-08-24-p256-test.crt"
+status = "compromised"
+title = "P-256 test certificate (Aug 2026)"
+use = """
+A throwaway test certificate whose private key was later exposed. Never
+used for anything real. Treat any signature from it as not mine."""
+
+# ---------------------------------------------------------------- legacy
+
+[[legacy]]
+title = "Keybase (keybase.io/bsoyka)"
+use = """
+Legacy. The proof at bsoyka.me/keybase.txt stays up so old verifications
+don't break, but Keybase isn't maintained and this manifest supersedes it."""

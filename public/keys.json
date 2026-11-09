@@ -136,8 +136,8 @@
    "issuer": "Benjamin Soyka Personal CA",
    "not_before": "2026-11-09",
    "not_after": "2031-11-09",
-   "sha256": "6CD644550592610C8CDCA34D3D4B4FFC8EAC91368CB5A5C07FB058C4E2102E54",
-   "sha1": "6A217397FAE0A49C6F29518839D39AA8B90E07C6",
+   "sha256": "3DBED5A3FCD4178CADFFFEA94C97D9CB8C7AD6435A15566BF0889F2A17EB8318",
+   "sha1": "7367FEF23D5434A6C9650E6760CED623FACCBA2A",
    "private_key": "On a hardware security key only. It can't be copied off, so there is no backup; if the hardware is lost I issue a new certificate."
   },
   {
@@ -148,8 +148,8 @@
    "issuer": "Benjamin Soyka Personal CA",
    "not_before": "2026-11-09",
    "not_after": "2031-11-09",
-   "sha256": "5D828D548F80D6A81FC233228A8C3E0FD2407399378CA0C1A24C9783B347686B",
-   "sha1": "FAFE4253D39A1723B33D7EDD8760A6926CA140AE",
+   "sha256": "BFB9C53709425B118E4F72133273616EF34A741DE4E983D7EEDA422CD56AC58B",
+   "sha1": "6B709CF4171AF0B52EC24131581B34E691E11E7D",
    "private_key": "On a second hardware security key, kept somewhere safe. Can't be copied off."
   },
   {

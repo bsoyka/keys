@@ -77,10 +77,10 @@ CURRENT
 [X.509] Document signing certificate
   Subject:     Benjamin Soyka <ben@bensoyka.com>
   Issuer:      Benjamin Soyka Personal CA
-  Serial:      08F40662D5E2D9F57B2672678786FE5440EFE018
+  Serial:      53A72E6DDC7792779150FBE316C9346DE6983ED6
   Valid:       2026-11-09 to 2031-11-09
-  SHA-256:     6C:D6:44:55:05:92:61:0C:8C:DC:A3:4D:3D:4B:4F:FC:8E:AC:91:36:8C:B5:A5:C0:7F:B0:58:C4:E2:10:2E:54
-  SHA-1:       6A:21:73:97:FA:E0:A4:9C:6F:29:51:88:39:D3:9A:A8:B9:0E:07:C6   (what Acrobat shows)
+  SHA-256:     3D:BE:D5:A3:FC:D4:17:8C:AD:FF:FE:A9:4C:97:D9:CB:8C:7A:D6:43:5A:15:56:6B:F0:88:9F:2A:17:EB:83:18
+  SHA-1:       73:67:FE:F2:3D:54:34:A6:C9:65:0E:67:60:CE:D6:23:FA:CC:BA:2A   (what Acrobat shows)
   Private key: On a hardware security key only. It can't be copied off, so there is no backup; if the hardware is lost I issue a new certificate.
   Download:    https://keys.bensoyka.com/pki/certs/docsign-primary.crt
   Attestation:  https://keys.bensoyka.com/pki/attestation/docsign-primary-attest.crt
@@ -92,10 +92,10 @@ CURRENT
 [X.509] Document signing certificate (backup)
   Subject:     Benjamin Soyka <ben@bensoyka.com>
   Issuer:      Benjamin Soyka Personal CA
-  Serial:      541F36739D8E596C57644A94523FCF40259A5563
+  Serial:      191E9ABAADDF11E610CBC7DE2F167BD379DF0A4F
   Valid:       2026-11-09 to 2031-11-09
-  SHA-256:     5D:82:8D:54:8F:80:D6:A8:1F:C2:33:22:8A:8C:3E:0F:D2:40:73:99:37:8C:A0:C1:A2:4C:97:83:B3:47:68:6B
-  SHA-1:       FA:FE:42:53:D3:9A:17:23:B3:3D:7E:DD:87:60:A6:92:6C:A1:40:AE   (what Acrobat shows)
+  SHA-256:     BF:B9:C5:37:09:42:5B:11:8E:4F:72:13:32:73:61:6E:F3:4A:74:1D:E4:E9:83:D7:EE:DA:42:2C:D5:6A:C5:8B
+  SHA-1:       6B:70:9C:F4:17:1A:F0:B5:2E:C2:41:31:58:1B:34:E6:91:E1:1E:7D   (what Acrobat shows)
   Private key: On a second hardware security key, kept somewhere safe. Can't be copied off.
   Download:    https://keys.bensoyka.com/pki/certs/docsign-backup.crt
   Attestation:  https://keys.bensoyka.com/pki/attestation/docsign-backup-attest.crt
@@ -168,8 +168,8 @@ LEGACY
   isn't maintained anymore. My accounts are now linked to my key on Keyoxide.
 -----BEGIN PGP SIGNATURE-----
 
-iHUEARYIAB0WIQTHuCbThVWvo65/ohbyAej6LXITnwUCavIiRwAKCRDyAej6LXIT
-nyE6AP9wsNW0H+jSWbVHgDThtm2VJ0Wa2JRpTJUZZNAEEQIR8gD9FsZstGm7LTI3
-WAhoZUnY/x6Ve8cBfzcFDxixpxzh6w0=
-=iTbA
+iHUEARYIAB0WIQTHuCbThVWvo65/ohbyAej6LXITnwUCavIqJgAKCRDyAej6LXIT
+nyHBAQDp4WLdlcTx1Z1WuLcALWKxf05y1VypeelwD3yOHScAtQEAyuXHdQgW0f9H
+1H3jdTqVm/VdCOBEYcXvaNNI6XnUmwU=
+=nbcJ
 -----END PGP SIGNATURE-----

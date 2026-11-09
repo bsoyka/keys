@@ -3,10 +3,13 @@
 # check  -> fail if public/keys.txt isn't a valid signature over the current build
 # deploy -> upload public/ to S3 and invalidate CloudFront
 # check-expiry -> list everything with an expiry date; fails if any is within 60 days
+# macOS's python3 is too old for tomllib; uv finds or fetches 3.11+.
+PY ?= uv run --quiet --no-project --python ">=3.11" python3
+
 .PHONY: build sign check deploy check-expiry
 
 build:
-	python3 scripts/build.py
+	$(PY) scripts/build.py
 
 sign: build
 	gpg --yes --local-user BC4876BDC8AB5AB8C9CB81659497E30583D68D89 \
@@ -24,4 +27,4 @@ deploy: check
 	scripts/deploy.sh
 
 check-expiry:
-	python3 scripts/check-expiry.py
+	$(PY) scripts/check-expiry.py

@@ -50,9 +50,10 @@ CNF="$KEYS_REPO/pki/openssl.cnf"
 OPENSSL="${OPENSSL:-$(brew --prefix openssl@3 2>/dev/null)/bin/openssl}"
 [[ -x "$OPENSSL" ]] || { echo "brew install openssl@3" >&2; exit 1; }
 for t in ykman gpg; do command -v "$t" >/dev/null || { echo "missing $t" >&2; exit 1; }; done
-# build.py/asp.py use tomllib (3.11+); macOS's own python3 is older.
-python3 -c 'import sys; sys.exit(sys.version_info < (3, 11))' ||
-  { echo "python3 is older than 3.11; activate mise/uv's Python first" >&2; exit 1; }
+# The Python scripts need 3.11+ (tomllib) and macOS's own python3 is older, so
+# run them through uv, which finds or downloads a new enough Python.
+command -v uv >/dev/null || { echo "brew install uv" >&2; exit 1; }
+py() { uv run --quiet --no-project --python '>=3.11' python3 "$@"; }
 
 say()   { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 pause() { read -r -p "$* [enter to continue] " _; }
@@ -253,13 +254,13 @@ cmd_asp_init() {
   [[ -e data/asp-public.json ]] && { echo "Keyoxide profile key already exists" >&2; exit 1; }
   say "Creating the Keyoxide profile key (Ed25519)"
   "$OPENSSL" genpkey -algorithm ed25519 -out "$RAM/asp.key"
-  python3 scripts/asp.py init "$RAM/asp.key" "$OPENSSL"
+  py scripts/asp.py init "$RAM/asp.key" "$OPENSSL"
   backup_key asp
-  python3 scripts/asp.py sign "$RAM/asp.key" "$OPENSSL"
+  py scripts/asp.py sign "$RAM/asp.key" "$OPENSSL"
 }
 
 cmd_asp_sign() {
-  python3 scripts/asp.py sign "$(ca_key asp)" "$OPENSSL"
+  py scripts/asp.py sign "$(ca_key asp)" "$OPENSSL"
   echo "Now: make sign deploy"
 }
 
@@ -273,7 +274,7 @@ cmd_notation() {
     want+=("x509-root-sha256@bensoyka.com=$("$OPENSSL" x509 -in pki/ca/root/cert.pem -noout -fingerprint -sha256 | cut -d= -f2 | tr -d : | tr A-F a-f)")
   fi
   if [[ -f data/asp-public.json ]]; then   # link the key to the Keyoxide profile
-    want+=("proof@ariadne.id=$(python3 -c 'import json;print(json.load(open("data/asp-public.json"))["uri"])')")
+    want+=("proof@ariadne.id=$(py -c 'import json;print(json.load(open("data/asp-public.json"))["uri"])')")
   fi
   while IFS= read -r line; do
     [[ -z "$line" || "$line" == \#* ]] || want+=("$line")
@@ -307,7 +308,7 @@ cmd_paper() {
     command -v "$t" >/dev/null || { echo "brew install ${t/zbarimg/zbar}" >&2; exit 1; }
   done
   local page
-  page=$(python3 scripts/paper.py "$DOOMSDAY" "$RAM/paper")
+  page=$(py scripts/paper.py "$DOOMSDAY" "$RAM/paper")
   say "Print it: 2 copies of pages 1-4 (cover, master key, revocation, CA keys), 1 copy of page 5 (Proton)"
   echo "Safari: File > Print, Letter, scale 100%, no headers/footers. Don't save a PDF."
   open -a Safari "$page"

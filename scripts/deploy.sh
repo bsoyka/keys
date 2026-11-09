@@ -9,8 +9,7 @@ DIST=$(terraform -chdir=terraform output -raw distribution_id)
 S3="s3://$BUCKET"
 CC="public, max-age=3600"
 
-# One pass per content type. S3 would otherwise guess (badly) for .asc/.crl/.crt
-# and the extensionless WKD files. Later passes only touch their own patterns.
+# One pass per content type. S3 would otherwise guess (badly) for .asc/.crl/.crt. Later passes only touch their own patterns.
 up() { # content-type, then include globs
   local ct="$1"; shift
   local args=(--exclude '*')
@@ -21,11 +20,10 @@ up "text/html; charset=utf-8"  '*.html'
 up "text/css; charset=utf-8"   '*.css'
 up "text/javascript; charset=utf-8" '*.js' '*.mjs'
 up "application/json"          '*.json'
-up "text/plain; charset=utf-8" '*.txt' '*.asc' '.well-known/openpgpkey/*/policy'
+up "text/plain; charset=utf-8" '*.txt' '*.asc'
 up "application/pkix-cert"     '*.crt'
 up "application/pkix-crl"      '*.crl'
 up "application/vnd.fdf"       '*.fdf'
-up "application/octet-stream"  '.well-known/openpgpkey/*/hu/*'
 
 # Remove objects that no longer exist in public/. Done by hand rather than
 # `sync --delete`, which would re-upload unmatched files with guessed types.

@@ -1,4 +1,4 @@
-# build  -> regenerate derived files (index.html, WKD, ssh.txt, build/keys.txt)
+# build  -> regenerate derived files (index.html, keys.json, ssh.txt, build/keys.txt)
 # sign   -> clearsign build/keys.txt into public/keys.txt (YubiKey PIN + touch)
 # check  -> fail if public/keys.txt isn't a valid signature over the current build
 # deploy -> upload public/ to S3 and invalidate CloudFront

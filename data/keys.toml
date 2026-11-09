@@ -1,5 +1,5 @@
 # Source of truth for what each key is. scripts/build.py reads this plus the
-# key/cert files under public/ and generates keys.txt, index.html, WKD and ssh.txt.
+# key/cert files under public/ and generates keys.txt, index.html, keys.json and ssh.txt.
 # Fingerprints are never typed here: they're computed from the files.
 
 [owner]

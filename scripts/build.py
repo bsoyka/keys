@@ -6,7 +6,6 @@ Outputs (all deterministic, safe to re-run):
   public/index.html                   human-readable page
   public/ssh.txt                      SSH public key from the PGP auth subkey
   public/pgp.asc                      stable alias for the current primary key
-  public/.well-known/openpgpkey/...   WKD (advanced method, served on openpgpkey.<domain>)
 
 Key decision: fingerprints are always computed from the files with gpg/openssl,
 never typed, so the manifest can't drift from what's actually published.
@@ -45,16 +44,6 @@ def group4(fp: str) -> str:
     half = len(parts) // 2
     return " ".join(parts[:half]) + "  " + " ".join(parts[half:])
 
-
-def zbase32(data: bytes) -> str:
-    alphabet = "ybndrfg8ejkmcpqxot1uwisza345h769"
-    bits = "".join(f"{b:08b}" for b in data)
-    bits += "0" * (-len(bits) % 5)
-    return "".join(alphabet[int(bits[i : i + 5], 2)] for i in range(0, len(bits), 5))
-
-
-def wkd_hash(local_part: str) -> str:
-    return zbase32(hashlib.sha1(local_part.lower().encode()).digest())
 
 
 CAPS = {"s": "Sign", "e": "Encrypt", "a": "Auth", "c": "Certify"}
@@ -184,21 +173,6 @@ def load_cert(meta: dict) -> Cert:
 
 
 # ------------------------------------------------------------------ outputs
-
-
-def write_wkd(key: PgpKey, gnupghome: str, domain: str, local: str, email: str) -> None:
-    env = {**os.environ, "GNUPGHOME": gnupghome}
-    base = PUBLIC / ".well-known" / "openpgpkey" / domain
-    if base.exists():
-        shutil.rmtree(base)
-    (base / "hu").mkdir(parents=True)
-    (base / "policy").write_text("")  # required to exist; empty = defaults
-    data = subprocess.run(
-        ["gpg", "--batch", "--export", "--export-options", "export-minimal",
-         "--export-filter", f"keep-uid=mbox = {email}", key.fpr],
-        check=True, capture_output=True, env=env,
-    ).stdout
-    (base / "hu" / wkd_hash(local)).write_bytes(data)
 
 
 def ssh_line(fpr: str, gnupghome: str) -> str:
@@ -539,9 +513,6 @@ def main() -> None:
         os.chmod(gh, 0o700)
         pgp = [load_pgp(m, gh) for m in cfg["pgp"]]
         primary = next(k for k in pgp if k.meta.get("alias"))
-        email = primary.meta["wkd"]
-        local, domain = email.split("@")
-        write_wkd(primary, gh, domain, local, email)
         ssh = ssh_line(primary.meta["ssh_subkey"], gh)
     shutil.copyfile(PUBLIC / primary.meta["file"], PUBLIC / primary.meta["alias"])
     (PUBLIC / "ssh.txt").write_text(ssh + "\n")
@@ -552,7 +523,7 @@ def main() -> None:
     import json
 
     (PUBLIC / "keys.json").write_text(json.dumps(keys_json(cfg, pgp, root, certs, ssh), indent=1) + "\n")
-    print("built: build/keys.txt (unsigned), public/index.html, keys.json, ssh.txt, pgp.asc, WKD")
+    print("built: build/keys.txt (unsigned), public/index.html, keys.json, ssh.txt, pgp.asc")
 
 
 if __name__ == "__main__":

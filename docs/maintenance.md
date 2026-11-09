@@ -20,8 +20,8 @@
 
 ## First-time setup (once)
 
-1. `cd terraform && terraform init && terraform apply -var cloudflare_zone_id=…`
-   (needs AWS credentials and `CLOUDFLARE_API_TOKEN` with DNS edit on bensoyka.com).
+1. Hosting: [terraform/README.md](../terraform/README.md) (two phases, with the
+   DNS records added in bsoyka/infra in between).
 2. The ceremony: Wi-Fi off, YubiKey in, `scripts/ca.sh ceremony`. Creates the root
    and the personal CA under it, issues the 9c cert with attestation, signs both
    revocation lists, adds the root fingerprint to the PGP UID, and installs the

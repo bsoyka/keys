@@ -87,9 +87,12 @@ Then `make sign deploy` and publish (**E**). The YubiKey doesn't change.
 ## E. Publish an updated PGP key
 
 ```sh
-make sign deploy                                   # keys.bensoyka.com + WKD
+make sign deploy                                   # keys.bensoyka.com
 gpg --keyserver hkps://keys.openpgp.org --send-keys BC4876BDC8AB5AB8C9CB81659497E30583D68D89
 ```
+
+keys.openpgp.org also serves WKD for `@bensoyka.com` (openpgpkey.bensoyka.com points
+at it), so this upload is what `gpg --locate-keys ben@bensoyka.com` returns.
 
 Also replace it at https://github.com/settings/keys.
 

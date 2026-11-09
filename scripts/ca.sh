@@ -232,7 +232,9 @@ main() {
       cmd_issue_docsign
       cmd_crl
       cmd_notation
-      cp docs/doomsday/pgp-keys-RESTORE.md "$DOOMSDAY/pgp-keys/RESTORE.md" ;;
+      cp docs/doomsday/pgp-keys-RESTORE.md "$DOOMSDAY/pgp-keys/RESTORE.md"
+      grep -q '^## Signing certificates' "$DOOMSDAY/README.md" 2>/dev/null ||
+        cat docs/doomsday/README-section.md >> "$DOOMSDAY/README.md" ;;
     *) sed -n '2,13p' "$0"; exit 1 ;;
   esac
   say "Done. Turn Wi-Fi back on, then: make sign deploy"

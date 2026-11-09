@@ -46,6 +46,9 @@ CNF="$KEYS_REPO/pki/openssl.cnf"
 OPENSSL="${OPENSSL:-$(brew --prefix openssl@3 2>/dev/null)/bin/openssl}"
 [[ -x "$OPENSSL" ]] || { echo "brew install openssl@3" >&2; exit 1; }
 for t in ykman gpg; do command -v "$t" >/dev/null || { echo "missing $t" >&2; exit 1; }; done
+# build.py/asp.py use tomllib (3.11+); macOS's own python3 is older.
+python3 -c 'import sys; sys.exit(sys.version_info < (3, 11))' ||
+  { echo "python3 is older than 3.11; activate mise/uv's Python first" >&2; exit 1; }
 
 say()   { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 pause() { read -r -p "$* [enter to continue] " _; }
@@ -271,6 +274,8 @@ cmd_notation() {
 
   say "Updating notations on the PGP key (needs the master key backup)"
   export GNUPGHOME="$RAM/gnupg"; mkdir -m 700 "$GNUPGHOME"
+  # Reuse the everyday pinentry (pinentry-mac) so the passphrase prompt appears.
+  grep -h '^pinentry-program' "$HOME/.gnupg/gpg-agent.conf" > "$GNUPGHOME/gpg-agent.conf" 2>/dev/null || true
   gpg --quiet --import "$DOOMSDAY/pgp-keys/current-83D68D89/secret-master-$PGP_FPR.asc"
   gpg --quiet --import "public/pgp/$PGP_FPR.asc"   # bring in any newer public sigs
   have=$(gpg --list-options show-notations --list-sigs "$PGP_FPR" | sed -n 's/^ *Signature notation: //p')

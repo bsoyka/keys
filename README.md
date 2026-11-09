@@ -11,7 +11,7 @@ PGP primary BC48…8D89 (offline)        ← root of trust
 Root CA (P-384, offline, pathlen:1)    ← what people trust in Acrobat
 └─ Personal CA (P-384, offline, pathlen:0)
    └─ document-signing certs in PIV 9c on each YubiKey, primary and backup
-      (on-device keys, attested; RSA-3072 where the firmware allows)
+      (on-device P-384 keys, attested)
    └─ macOS login certs in PIV 9a + 9d on each YubiKey
    (room for more CAs under the root later; none exist yet)
 ```

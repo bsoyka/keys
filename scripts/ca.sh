@@ -185,10 +185,10 @@ cmd_issue_docsign() {
   echo "This replaces that YubiKey's slot 9c key. Signatures already made with it stay valid."
   pause "Plug in ONLY the $label YubiKey."
   one_yubikey
-  # RSA-3072 needs firmware 5.7+; older keys get RSA-2048 (still fine for Acrobat).
+  # P-384: what macOS's built-in smart-card support (which Acrobat signs
+  # through) can use; it can't sign with RSA-3072. Same curve as the CAs.
+  alg=ECCP384
   fw=$(ykman info | awk -F': ' '/Firmware version/ {print $2}')
-  local major minor; IFS=. read -r major minor _ <<< "$fw"
-  if (( major > 5 || (major == 5 && minor >= 7) )); then alg=RSA3072; else alg=RSA2048; fi
   echo "YubiKey $serial_no, firmware $fw: using $alg"
   local Y=(ykman --device "$serial_no")
   # PIN once per session, touch on every signature. PIN-every-time ("ALWAYS")

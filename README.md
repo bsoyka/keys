@@ -20,7 +20,7 @@ Keep a clone of this repo in backups so recovery doesn't depend on GitHub.
 | Path | What |
 |---|---|
 | `data/keys.toml` | What each key is and its status. Edit this, not the outputs. |
-| `public/` | Exactly what's deployed. `pgp/`, `pki/` are source files; `index.html`, `ssh.txt`, `pgp.asc`, `.well-known/` are generated; `keys.txt` is generated then signed. |
+| `public/` | Exactly what's deployed. `pgp/`, `pki/` are source files; `style.css` (matched to bensoyka.com) and `verify.js` (the in-page checker) are hand-written; `index.html`, `keys.json`, `ssh.txt`, `pgp.asc`, `.well-known/` are generated; `keys.txt` is generated then signed. `vendor/` is a pinned OpenPGP.js (`scripts/vendor.sh` updates it). |
 | `pki/` | OpenSSL config and the CA database (public by nature). |
 | `scripts/build.py` | Generates the derived files; fingerprints are computed, never typed. |
 | `scripts/ca.sh` | Root CA operations, on a RAM disk, offline. |

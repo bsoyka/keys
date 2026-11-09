@@ -1,0 +1,123 @@
+{
+ "primary": "BC4876BDC8AB5AB8C9CB81659497E30583D68D89",
+ "pgp": [
+  {
+   "fpr": "BC4876BDC8AB5AB8C9CB81659497E30583D68D89",
+   "title": "Main PGP key",
+   "status": "current",
+   "file": "pgp/BC4876BDC8AB5AB8C9CB81659497E30583D68D89.asc",
+   "revoked": null,
+   "created": "2026-08-21",
+   "uids": [
+    "Benjamin Soyka <ben@bensoyka.com>",
+    "Ben Soyka <soyka006@umn.edu>",
+    "Benjamin Soyka <bensoyka6@gmail.com>"
+   ],
+   "subkeys": [
+    {
+     "fpr": "C7B826D38555AFA3AE7FA216F201E8FA2D72139F",
+     "caps": "s",
+     "expires": "2029-08-20"
+    },
+    {
+     "fpr": "411A48120A5A2F1DC85CDD67AEE88FCE4521BF59",
+     "caps": "e",
+     "expires": "2029-08-20"
+    },
+    {
+     "fpr": "4CD451BCEC8DB32C03B5026CC83BA4E193E4483E",
+     "caps": "a",
+     "expires": "2029-08-20"
+    }
+   ]
+  },
+  {
+   "fpr": "13ABAA107960069C2D1BF9D0D1937DCDF9A524BC",
+   "title": "Wikipedia PGP key",
+   "status": "current",
+   "file": "pgp/13ABAA107960069C2D1BF9D0D1937DCDF9A524BC.asc",
+   "revoked": null,
+   "created": "2022-12-24",
+   "uids": [
+    "Bsoyka <bsoyka.wikipedia@gmail.com>"
+   ],
+   "subkeys": [
+    {
+     "fpr": "582908A0B8A1C66BACD0FBA48151FB3DB546C371",
+     "caps": "e",
+     "expires": null
+    }
+   ]
+  },
+  {
+   "fpr": "0CA7CC16A64B68F3048EE8FEA5E726D5A65228EA",
+   "title": "Previous PGP key (2021-2026)",
+   "status": "revoked",
+   "file": "pgp/0CA7CC16A64B68F3048EE8FEA5E726D5A65228EA.asc",
+   "revoked": "2026-08-21",
+   "created": "2021-01-24",
+   "uids": [
+    "Benjamin Soyka <hello@bsoyka.me>",
+    "Benjamin Soyka <bensoyka@icloud.com>",
+    "Benjamin Soyka <michael.soyka3@gmail.com>",
+    "Benjamin Soyka",
+    "Benjamin Soyka <bensoyka6@gmail.com>",
+    "Benjamin Soyka <soyka006@umn.edu>"
+   ],
+   "subkeys": [
+    {
+     "fpr": "EB2968D0F1DD9B0CB9767E907BED20103FBB4DB5",
+     "caps": "e",
+     "expires": null
+    }
+   ]
+  },
+  {
+   "fpr": "91FA69646625ECAB5DE4A69737799464147A3418",
+   "title": "Original PGP key (2020-2025)",
+   "status": "revoked",
+   "file": "pgp/91FA69646625ECAB5DE4A69737799464147A3418.asc",
+   "revoked": "2025-07-19",
+   "created": "2020-06-15",
+   "uids": [
+    "Benjamin Soyka <bensoyka@icloud.com>"
+   ],
+   "subkeys": [
+    {
+     "fpr": "287579F9963C99D75B1DF38B20A81F2E9E522C59",
+     "caps": "e",
+     "expires": "2022-06-15"
+    }
+   ]
+  }
+ ],
+ "x509": [
+  {
+   "title": "Earlier signing certificate (Oct\u2013Nov 2026)",
+   "status": "retired",
+   "file": "pki/retired/2026-10-30-selfsigned-9c.crt",
+   "subject": "Benjamin Soyka <ben@bensoyka.com>",
+   "issuer": "Benjamin Soyka <ben@bensoyka.com>",
+   "not_before": "2026-10-30",
+   "not_after": "2031-10-30",
+   "sha256": "566B27B1A62165016B68EA9346C146CDF9CEE593C7F541F129708245C2E3384B",
+   "sha1": "B9F80A34B372E4F9F5B2EA2671CA34CDC1ED82A6"
+  },
+  {
+   "title": "P-256 test certificate (Aug 2026)",
+   "status": "compromised",
+   "file": "pki/compromised/2026-08-24-p256-test.crt",
+   "subject": "Benjamin Soyka",
+   "issuer": "Benjamin Soyka",
+   "not_before": "2026-08-24",
+   "not_after": "2036-08-21",
+   "sha256": "056C87368DAA9AFE7863290C0CD24E84A4621383D7EA315DAF00955295E732BA",
+   "sha1": "E97B60494F0CBE1C7110CFC4BFF25C9F54A17D40"
+  }
+ ],
+ "ssh": {
+  "line": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF9pJPHws9mluZNCA65sUu4TgH/1gKVVPUlW7vdqkNtN openpgp:0x93E4483E",
+  "blob": "AAAAC3NzaC1lZDI1NTE5AAAAIF9pJPHws9mluZNCA65sUu4TgH/1gKVVPUlW7vdqkNtN",
+  "fingerprint": "SHA256:TxH6cyjCV4IEPwmOj4R3NR/eWfgPXSWmU0DuInmLLOY"
+ }
+}

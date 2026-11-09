@@ -12,12 +12,12 @@ site = "https://keys.bensoyka.com"
 [[pgp]]
 file = "pgp/BC4876BDC8AB5AB8C9CB81659497E30583D68D89.asc"
 status = "current"
-title = "Primary PGP key"
+title = "Main PGP key"
 use = """
-My main identity key. Certify-only primary key kept offline; signing,
-encryption and authentication subkeys live on a YubiKey (touch required).
-Signs my Git commits, this manifest, and anything else I sign with PGP.
-The authentication subkey is my SSH key (see ssh.txt)."""
+My main key. Use it to send me encrypted messages or to check things I've
+signed: emails, files, Git commits, and this list. Its everyday parts live on
+a hardware security key and can't be copied off it; the master part is kept
+offline. Its authentication part doubles as my SSH key."""
 wkd = "ben@bensoyka.com"
 alias = "pgp.asc"   # stable URL for "my current key"
 ssh_subkey = "4CD451BCEC8DB32C03B5026CC83BA4E193E4483E"
@@ -27,17 +27,16 @@ file = "pgp/13ABAA107960069C2D1BF9D0D1937DCDF9A524BC.asc"
 status = "current"
 title = "Wikipedia PGP key"
 use = """
-Used only for Wikipedia-related correspondence as User:Bsoyka; also
-published on my Wikipedia user page. Rarely used, kept alive on purpose."""
+A separate key for Wikipedia-related correspondence as User:Bsoyka, also
+published on my Wikipedia user page. Rarely used, but still active."""
 
 [[pgp]]
 file = "pgp/0CA7CC16A64B68F3048EE8FEA5E726D5A65228EA.asc"
 status = "revoked"
 title = "Previous PGP key (2021-2026)"
 use = """
-Rotated away from on 2026-08-21 as routine maintenance, not because of a
-compromise. Cross-certified with the current key, then revoked. Old
-signatures from it remain valid as history; don't encrypt to it."""
+Replaced on 2026-08-21 as routine maintenance, not because anything went
+wrong. Signatures it made before then are still genuine. Don't encrypt to it."""
 
 [[pgp]]
 file = "pgp/91FA69646625ECAB5DE4A69737799464147A3418.asc"
@@ -51,44 +50,42 @@ use = "Revoked 2025-07-19. Listed for completeness."
 root = "pki/root.crt"
 crl = "pki/root.crl"
 root_use = """
-My personal root certificate authority. Its key is kept offline and
-encrypted; it only issues my own signing certificates and can't create
-sub-CAs. Trust this once and every document I sign verifies, including
-after certificate renewals."""
+My own certificate authority. It only issues certificates for me, can't
+create other authorities, and its key is kept offline. Trust it once and
+every document I sign will show as valid, including after I renew my
+signing certificate."""
 
 [[x509]]
 file = "pki/certs/docsign-current.crt"
 status = "current"
-title = "Document signing certificate (YubiKey PIV slot 9c)"
+title = "Document signing certificate"
 use = """
-Signs PDFs (Adobe Acrobat and similar). Issued by the root above. The key
-was generated on the YubiKey and can't be exported; the attestation below
-proves that against Yubico's own CA. PIN and touch required for every
-signature."""
+What I sign PDFs with. Its private key was created on a hardware security
+key and can't be copied off it; the attestation file proves that, checkable
+against the hardware maker's own certificate authority."""
 attestation = "pki/attestation/docsign-current-attest.crt"
 attestation_intermediate = "pki/attestation/docsign-current-f9.crt"
 
 [[x509]]
 file = "pki/retired/2026-10-30-selfsigned-9c.crt"
 status = "retired"
-title = "Self-signed signing certificate (Oct-Nov 2026)"
+title = "Earlier signing certificate (Oct–Nov 2026)"
 use = """
-Made in Acrobat before this root existed and used to sign a few documents.
-Not compromised; those signatures are genuine. Replaced by the root-issued
-certificate above."""
+Used for a few documents before my certificate authority existed. Those
+signatures are genuine; it's simply been replaced."""
 
 [[x509]]
 file = "pki/compromised/2026-08-24-p256-test.crt"
 status = "compromised"
 title = "P-256 test certificate (Aug 2026)"
 use = """
-A throwaway test certificate whose private key was later exposed. Never
-used for anything real. Treat any signature from it as not mine."""
+A test certificate whose private key was later exposed. Never used for
+anything real. Treat anything signed with it as not from me."""
 
 # ---------------------------------------------------------------- legacy
 
 [[legacy]]
-title = "Keybase (keybase.io/bsoyka)"
+title = "Keybase"
 use = """
-Legacy. The proof at bsoyka.me/keybase.txt stays up so old verifications
-don't break, but Keybase isn't maintained and this manifest supersedes it."""
+My old Keybase proof stays up so existing checks don't break, but Keybase
+isn't maintained anymore and this page replaces it."""

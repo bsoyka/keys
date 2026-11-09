@@ -1,0 +1,179 @@
+/* Matches bensoyka.com: IBM Plex Sans, light #f4f9f9 background, white bento
+   cards with a teal underline on headings, #507dbc links with a grow-in
+   underline. Light only, like the main site. */
+
+:root {
+  --primary: #507dbc;
+  --secondary: #51b0bd;
+  --light: #f4f9f9;
+  --dark: #04080f;
+  --muted: #4b5563;
+  --line: #e5e7eb;
+  --ok: #15803d;
+  --ok-bg: #f0fdf4;
+  --warn: #a16207;
+  --warn-bg: #fefce8;
+  --bad: #b91c1c;
+  --bad-bg: #fef2f2;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--light);
+  color: var(--dark);
+  font: 16px/1.5 "IBM Plex Sans", sans-serif;
+}
+code, pre, textarea { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+
+.grid {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+@media (min-width: 768px) {
+  .grid { padding: 1.5rem; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .span-2 { grid-column: span 2; }
+  .span-3 { grid-column: span 3; }
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  padding: 1.5rem;
+  min-width: 0;
+}
+.card h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.6rem;
+  padding-bottom: 0.2em;
+  border-bottom: 0.065em solid var(--secondary);
+}
+h1 { font-size: 2.25rem; font-weight: 700; margin: 0 0 0.5rem; line-height: 1.1; }
+.eyebrow { margin: 0 0 0.25rem; font-weight: 500; }
+.intro p:last-child { font-size: 1.125rem; margin-bottom: 0; }
+p { margin: 0 0 0.75em; }
+p:last-child { margin-bottom: 0; }
+
+a {
+  position: relative;
+  color: var(--primary);
+  text-decoration: none;
+}
+a::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 0.1em;
+  background: var(--primary);
+  transition: width 0.3s ease;
+}
+a:hover::after { width: 100%; }
+
+code { font-size: 0.85em; background: var(--light); border-radius: 0.25rem; padding: 0.1em 0.35em; }
+code.fp { overflow-wrap: anywhere; }
+pre {
+  font-size: 0.85rem;
+  background: var(--light);
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  margin: 0 0 0.75em;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+ol { padding-left: 1.25rem; margin: 0; }
+li + li { margin-top: 0.5em; }
+
+.links { list-style: none; padding: 0; margin: 0; }
+.links span { display: block; color: var(--muted); font-size: 0.875rem; }
+
+.legal ul { list-style: none; padding: 0; margin: 0; font-size: 0.875rem; }
+
+.fine { color: var(--muted); font-size: 0.875rem; margin-top: 1rem; }
+
+/* ---- checker ---- */
+
+.checker textarea {
+  width: 100%;
+  font-size: 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background: var(--light);
+  color: var(--dark);
+  resize: vertical;
+}
+.checker textarea:focus { outline: 2px solid var(--primary); outline-offset: -1px; background: #fff; }
+.drop.dragging textarea { outline: 2px dashed var(--primary); background: #fff; }
+.signed { margin-top: 0.75rem; }
+.signed p { margin-bottom: 0.4rem; }
+.signed input { margin-top: 0.4rem; font-size: 0.875rem; }
+.actions { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 0.75rem; }
+.actions input { font-size: 0.875rem; color: var(--muted); }
+
+.btn {
+  font: inherit;
+  font-weight: 500;
+  padding: 0.625rem 1.25rem;
+  border: 1px solid var(--primary);
+  color: var(--primary);
+  background: #fff;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+}
+.btn:hover { box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1); }
+
+.result {
+  margin-top: 1rem;
+  border-radius: 0.5rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--line);
+  background: var(--light);
+}
+.result h3 { margin: 0 0 0.3rem; font-size: 1.1rem; }
+.result p { margin: 0.25rem 0 0; }
+.result.ok { border-color: var(--ok); background: var(--ok-bg); }
+.result.ok h3 { color: var(--ok); }
+.result.warn { border-color: var(--warn); background: var(--warn-bg); }
+.result.warn h3 { color: var(--warn); }
+.result.bad { border-color: var(--bad); background: var(--bad-bg); }
+.result.bad h3 { color: var(--bad); }
+
+/* ---- key list ---- */
+
+.keys { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+@media (min-width: 768px) { .keys { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.key { border: 1px solid var(--line); border-radius: 0.5rem; padding: 1rem 1.1rem; min-width: 0; }
+.key h3 { font-size: 1.1rem; margin: 0 0 0.4rem; }
+.key p { color: var(--muted); font-size: 0.95rem; }
+.key dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 0.25rem 0.75rem; margin: 0.75rem 0 0; font-size: 0.875rem; }
+.key dt { color: var(--muted); }
+.key dd { margin: 0; overflow-wrap: anywhere; }
+
+.pill {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.1em 0.6em;
+  border-radius: 999px;
+  vertical-align: 0.15em;
+  margin-left: 0.3rem;
+  white-space: nowrap;
+}
+.pill.current { color: var(--ok); background: var(--ok-bg); }
+.pill.revoked, .pill.retired { color: var(--muted); background: var(--light); }
+.pill.compromised { color: var(--bad); background: var(--bad-bg); }
+
+details { margin-top: 1.25rem; }
+summary { cursor: pointer; font-weight: 600; margin-bottom: 0.75rem; color: var(--muted); }

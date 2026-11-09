@@ -18,6 +18,9 @@ up() { # content-type, then include globs
   aws s3 sync public/ "$S3" "${args[@]}" --content-type "$ct" --cache-control "$CC"
 }
 up "text/html; charset=utf-8"  '*.html'
+up "text/css; charset=utf-8"   '*.css'
+up "text/javascript; charset=utf-8" '*.js' '*.mjs'
+up "application/json"          '*.json'
 up "text/plain; charset=utf-8" '*.txt' '*.asc' '.well-known/openpgpkey/*/policy'
 up "application/pkix-cert"     '*.crt'
 up "application/pkix-crl"      '*.crl'

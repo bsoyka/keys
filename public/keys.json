@@ -108,28 +108,16 @@
  ],
  "x509": [
   {
-   "title": "Earlier signing certificate (Oct\u2013Nov 2026)",
+   "title": "Earlier signing certificate (Aug\u2013Nov 2026)",
    "status": "retired",
-   "file": "pki/retired/2026-10-30-selfsigned-9c.crt",
-   "subject": "Benjamin Soyka <ben@bensoyka.com>",
-   "issuer": "Benjamin Soyka <ben@bensoyka.com>",
-   "not_before": "2026-10-30",
-   "not_after": "2031-10-30",
-   "sha256": "566B27B1A62165016B68EA9346C146CDF9CEE593C7F541F129708245C2E3384B",
-   "sha1": "B9F80A34B372E4F9F5B2EA2671CA34CDC1ED82A6",
-   "private_key": "Was kept in software by Acrobat, never on hardware. Deleted when this certificate was retired (Nov 2026)."
-  },
-  {
-   "title": "P-256 test certificate (Aug 2026)",
-   "status": "compromised",
-   "file": "pki/compromised/2026-08-24-p256-test.crt",
+   "file": "pki/retired/2026-08-24-p256-signing.crt",
    "subject": "Benjamin Soyka",
    "issuer": "Benjamin Soyka",
    "not_before": "2026-08-24",
    "not_after": "2036-08-21",
    "sha256": "056C87368DAA9AFE7863290C0CD24E84A4621383D7EA315DAF00955295E732BA",
    "sha1": "E97B60494F0CBE1C7110CFC4BFF25C9F54A17D40",
-   "private_key": "Exposed, then deleted on my side. Someone else may have a copy."
+   "private_key": "Was on a hardware security key, but a software copy existed and was shared outside my control on 2026-11-09. Removed from the hardware and all copies deleted."
   }
  ],
  "ssh": {

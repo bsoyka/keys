@@ -4,6 +4,9 @@
 #   scripts/ca.sh ceremony            first-time setup: root, personal CA, 9c cert, CRLs, notation
 #   scripts/ca.sh issue-docsign LABEL new on-device key in PIV slot 9c + cert from the personal CA,
 #                                     for one YubiKey: LABEL is primary (USB-C) or backup (USB-A)
+#   scripts/ca.sh issue-login LABEL   new on-device macOS login keys in 9a + 9d, certs from the
+#                                     personal CA (then pair with sc_auth; docs/macos-login.md)
+#   scripts/ca.sh yubikey LABEL       issue-docsign + issue-login for one YubiKey
 #   scripts/ca.sh crl                 re-sign every CA's revocation list (yearly)
 #   scripts/ca.sh revoke CA SERIAL    revoke a cert issued by CA (root|personal), then re-sign CRLs
 #   scripts/ca.sh new-intermediate NAME "Common Name"
@@ -142,14 +145,41 @@ cmd_new_intermediate() {
   backup_key "$name"
 }
 
+one_yubikey() {   # sets serial_no to the single plugged-in YubiKey
+  [[ $(ykman list --serials | wc -l) -eq 1 ]] || { echo "exactly one YubiKey must be plugged in" >&2; exit 1; }
+  serial_no=$(ykman list --serials)
+}
+
+cmd_issue_login() {
+  local label="${1:?primary or backup}" key serial_no s prof
+  key="$(ca_key personal)"
+  say "Issuing macOS login keys (9a + 9d) for the $label YubiKey"
+  echo "Unpair macOS from this YubiKey first (sudo sc_auth unpair -u \$USER -h <hash>)."
+  pause "Plug in ONLY the $label YubiKey."
+  one_yubikey
+  local Y=(ykman --device "$serial_no")
+  for s in 9a 9d; do
+    [[ $s == 9a ]] && prof=v3_login_auth || prof=v3_login_km
+    # PIN once per session and touch cached for 15 s: login and unlock stay usable.
+    "${Y[@]}" piv keys generate --algorithm ECCP256 --pin-policy ONCE --touch-policy CACHED \
+      "$s" "$RAM/$s.pub"
+    "${Y[@]}" piv certificates request "$s" "$RAM/$s.pub" "$RAM/$s.csr" -s "CN=Benjamin Soyka"
+    CA_KEY="$key" "$OPENSSL" ca -config "$CNF" -name personal_ca -batch -notext \
+      -extensions "$prof" -subj "/CN=Benjamin Soyka/emailAddress=ben@bensoyka.com/C=US" \
+      -in "$RAM/$s.csr" -out "$RAM/$s.pem"
+    "${Y[@]}" piv certificates import "$s" "$RAM/$s.pem"
+    echo "  slot $s: serial $("$OPENSSL" x509 -in "$RAM/$s.pem" -noout -serial | cut -d= -f2)"
+  done
+  echo "Pair macOS after the ceremony: docs/macos-login.md"
+}
+
 cmd_issue_docsign() {
   local label="${1:?primary or backup}" key serial_no fw alg
   key="$(ca_key personal)"
   say "Issuing a document-signing cert for the $label YubiKey"
   echo "This replaces that YubiKey's slot 9c key. Signatures already made with it stay valid."
   pause "Plug in ONLY the $label YubiKey."
-  [[ $(ykman list --serials | wc -l) -eq 1 ]] || { echo "exactly one YubiKey must be plugged in" >&2; exit 1; }
-  serial_no=$(ykman list --serials)
+  one_yubikey
   # RSA-3072 needs firmware 5.7+; older keys get RSA-2048 (still fine for Acrobat).
   fw=$(ykman info | awk -F': ' '/Firmware version/ {print $2}')
   local major minor; IFS=. read -r major minor _ <<< "$fw"
@@ -267,6 +297,8 @@ main() {
   ramdisk_up
   case "$cmd" in
     issue-docsign)    cmd_issue_docsign "$@" ;;
+    issue-login)      cmd_issue_login "$@" ;;
+    yubikey)          cmd_issue_docsign "$@"; cmd_issue_login "$@" ;;
     crl)              cmd_crl ;;
     revoke)           cmd_revoke "$@" ;;
     new-intermediate) cmd_new_intermediate "$@" ;;
@@ -277,7 +309,9 @@ main() {
       cmd_init_root
       cmd_new_intermediate personal "Benjamin Soyka Personal CA"
       cmd_issue_docsign primary
+      cmd_issue_login primary
       cmd_issue_docsign backup
+      cmd_issue_login backup
       cmd_crl
       cmd_asp_init
       cmd_notation

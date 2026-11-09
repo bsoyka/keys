@@ -316,12 +316,13 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
         if c.meta["status"] == "retired":
             cert_block(c, "X.509")
 
-    a("=" * 70)
-    a("COMPROMISED (do not trust anything signed by these)")
-    a("=" * 70)
-    a("")
-    for c in certs:
-        if c.meta["status"] == "compromised":
+    bad = [c for c in certs if c.meta["status"] == "compromised"]
+    if bad:
+        a("=" * 70)
+        a("COMPROMISED (do not trust anything signed by these)")
+        a("=" * 70)
+        a("")
+        for c in bad:
             cert_block(c, "X.509")
 
     a("=" * 70)

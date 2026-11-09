@@ -5,7 +5,7 @@
 | Every October | Re-sign both revocation lists (root and personal CA; each is valid ~400 days, so a year plus slack) | Wi-Fi off, `scripts/ca.sh crl`, Wi-Fi on, `make sign deploy` |
 | Every October | Renew `security.txt` on bensoyka.com (expires each Nov 1; RFC 9116 wants under a year) | bump `Expires` in bsoyka/website's `security.txt.in`, re-sign, deploy |
 | Before 2029-08-20 | Extend PGP subkeys | [restore.md § D](restore.md#d-extend-pgp-subkey-expiry-before-2029-08-20) |
-| Before late 2031 | Renew both 9c document-signing certs | `scripts/ca.sh issue-docsign primary`, then `… backup`; retire the old ones in `keys.toml` |
+| Before late 2031 | Renew both YubiKeys' certs (9c signing, 9a/9d login) | `scripts/ca.sh yubikey primary`, then `… backup`; retire the old signing certs in `keys.toml`; re-pair macOS |
 | Before late 2036 | Renew the personal CA (10-year cert) | `scripts/ca.sh new-intermediate personal …` after moving the old one aside; reissue both 9c certs |
 | Any key change | Re-sign and redeploy the manifest | `make sign deploy` |
 
@@ -38,6 +38,7 @@ a monthly scheduled task runs it and pings me. `make check` fails if `public/key
    `data/asp-public.json`) for bensoyka.com and bsoyka.me in bsoyka/infra, and make
    the GitHub gist ([keyoxide.md](keyoxide.md)).
 5. Acrobat: [acrobat.md](acrobat.md).
+6. macOS login: pair both YubiKeys ([macos-login.md](macos-login.md)).
 
 ## Keyoxide
 

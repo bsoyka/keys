@@ -104,22 +104,15 @@ attestation = "pki/attestation/docsign-backup-attest.crt"
 attestation_intermediate = "pki/attestation/docsign-backup-f9.crt"
 
 [[x509]]
-file = "pki/retired/2026-10-30-selfsigned-9c.crt"
-private_key = "Was kept in software by Acrobat, never on hardware. Deleted when this certificate was retired (Nov 2026)."
+file = "pki/retired/2026-08-24-p256-signing.crt"
 status = "retired"
-title = "Earlier signing certificate (Oct–Nov 2026)"
+title = "Earlier signing certificate (Aug–Nov 2026)"
+private_key = "Was on a hardware security key, but a software copy existed and was shared outside my control on 2026-11-09. Removed from the hardware and all copies deleted."
 use = """
-Used for a few documents before my certificate authority existed. Those
-signatures are genuine; it's simply been replaced."""
-
-[[x509]]
-file = "pki/compromised/2026-08-24-p256-test.crt"
-private_key = "Exposed, then deleted on my side. Someone else may have a copy."
-status = "compromised"
-title = "P-256 test certificate (Aug 2026)"
-use = """
-A test certificate whose private key was later exposed. Never used for
-anything real. Treat anything signed with it as not from me."""
+Used to sign documents from August to November 2026, with its key stored on
+hardware. A software copy of the key existed and was shared outside my control
+on 2026-11-09, so it's retired as of then. Documents I sent before that are
+genuine; if in doubt, ask me."""
 
 # ---------------------------------------------------------------- Keyoxide
 

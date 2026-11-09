@@ -242,13 +242,13 @@ pre {{ font-size: 7.6pt; line-height: 1.3; white-space: pre-wrap; word-break: br
 table {{ border-collapse: collapse; width: 100%; }} td, th {{ border-bottom: 1px solid #999; text-align: left; padding: 3pt; font-size: 9.5pt; }}
 dl.ids dt, dl.form dt {{ font-weight: 600; margin-top: 6pt; }} dl.ids dd, dl.form dd {{ margin: 0; }}
 .blank {{ border-bottom: 1px solid #000; height: 26pt; }}
-.letter {{ font-size: 9.5pt; line-height: 1.28; }}
+.letter {{ font-size: 9.5pt; line-height: 1.22; }}
 .letter h2 {{ font-size: 13pt; margin: 3pt 0; }} .letter h3 {{ font-size: 10.5pt; margin: 7pt 0 2pt; }}
 .letter p, .letter ul, .letter ol {{ margin: 3pt 0; }} .letter li {{ margin: 1pt 0; }}
 .letter pre {{ font-size: 8.5pt; margin: 3pt 0; }}
 .eyebrow {{ font-size: 8.5pt; margin: 0; }}
 .urls code {{ font-size: 9pt; }}
-.keybox {{ border: 1.5px dashed #000; height: 0.85in; margin: 5pt 0; position: relative; }}
+.keybox {{ border: 1.5px dashed #000; height: 0.75in; margin: 5pt 0; position: relative; }}
 .keybox span {{ position: absolute; left: 6pt; top: 3pt; font-size: 7.5pt; }}
 table.halves th, table.halves td {{ border: 1px solid #000; width: 50%; vertical-align: top; }}
 table.halves ul {{ margin: 0; padding-left: 14pt; }}

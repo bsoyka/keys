@@ -60,8 +60,8 @@ enc_path() {   # encrypted backup of a key in doomsday
 }
 
 check_offline() {
-  if route -n get default >/dev/null 2>&1; then
-    echo "A default network route exists. Turn Wi-Fi off (and unplug Ethernet) first." >&2
+  if nc -z -G 3 1.1.1.1 443 >/dev/null 2>&1; then
+    echo "This Mac can still reach the internet. Turn Wi-Fi off (and unplug Ethernet, quit VPNs) first." >&2
     exit 1
   fi
 }

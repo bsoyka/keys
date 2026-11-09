@@ -14,6 +14,7 @@ Root CA (P-384, offline, pathlen:1)    ← what people trust in Acrobat
       (on-device P-384 keys, attested)
    └─ macOS login certs in PIV 9a + 9d on each YubiKey
    (room for more CAs under the root later; none exist yet)
+Backup keys (age, post-quantum)        ← Sirloin's 3 recipients, listed for identification
 ```
 
 Only secrets live outside this repo, in `~/doomsday/` (see [docs/restore.md](docs/restore.md)).

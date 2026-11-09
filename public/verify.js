@@ -217,6 +217,17 @@ async function check() {
         ? show("ok", "That's my SSH key's fingerprint", data.ssh.line)
         : show("bad", "Not my SSH key", `My SSH key's fingerprint is ${data.ssh.fingerprint}.`);
 
+    // age public keys (post-quantum ones wrap across lines when pasted, so
+    // compare with whitespace removed).
+    if (/^age1/.test(text)) {
+      const key = text.replace(/\s+/g, "");
+      const i = (data.age?.keys ?? []).findIndex((k) => k.recipient === key);
+      return i >= 0
+        ? show("ok", "That's one of my backup encryption keys", `${data.age.title}, key ${i + 1} of ${data.age.keys.length}.`,
+            `Private key: ${data.age.keys[i].private_key}`)
+        : show("bad", "Not one of my age keys", "It doesn't match any of my backup encryption keys.");
+    }
+
     if (checkFingerprint(text)) return;
 
     show("", "Not sure what that is",

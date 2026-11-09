@@ -40,6 +40,12 @@ a monthly scheduled task runs it and pings me. `make check` fails if `public/key
 5. Acrobat: [acrobat.md](acrobat.md).
 6. macOS login: pair both YubiKeys ([macos-login.md](macos-login.md)).
 
+## Backup keys (age)
+
+`public/age/backups.txt` mirrors the keys in bsoyka/sirloin's `recipients.txt`
+(same order). When Sirloin's keys rotate, copy the new keys there, update
+`[age].private_keys` in `keys.toml`, and `make sign deploy`.
+
 ## Keyoxide
 
 See [keyoxide.md](keyoxide.md). Editing account links only needs

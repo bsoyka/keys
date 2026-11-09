@@ -305,6 +305,16 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
         a(indent(k["use"]))
         a("")
 
+    ag = load_age(cfg)
+    if ag:
+        a(f"[AGE] {ag['title']}")
+        for i, k in enumerate(ag["keys"], 1):
+            a(f"  Key {i}:       {k['recipient']}")
+            a(f"  Private key: {k['private_key']}")
+        a(f"  Download:    {site}/{ag['file']}")
+        a(indent(ag["use"]))
+        a("")
+
     a("=" * 70)
     a("RETIRED OR REVOKED (history only; don't encrypt to or newly trust)")
     a("=" * 70)
@@ -352,6 +362,25 @@ def load_asp() -> dict | None:
     return info
 
 
+def load_age(cfg) -> dict | None:
+    """Backup encryption recipients: the keys come from the published file, the
+    descriptions from keys.toml, matched by order (counts must agree)."""
+    meta = cfg.get("age")
+    if not meta:
+        return None
+    keys = [l.strip() for l in (PUBLIC / meta["file"]).read_text().splitlines() if l.startswith("age1")]
+    if len(keys) != len(meta["private_keys"]):
+        sys.exit(f"{meta['file']} has {len(keys)} keys but keys.toml describes {len(meta['private_keys'])}")
+    return {**meta, "keys": [{"recipient": k, "short": age_short(k), "private_key": d}
+                             for k, d in zip(keys, meta["private_keys"])]}
+
+
+def age_short(recipient: str) -> str:
+    """Post-quantum age keys are ~2,000 characters; show the start and end."""
+    head = 15 if recipient.startswith("age1pq1") else 12
+    return f"{recipient[:head]}…{recipient[-8:]}"
+
+
 def ssh_fingerprint(line: str) -> str:
     import base64
 
@@ -382,6 +411,7 @@ def keys_json(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -
                 for k in pgp],
         "x509": [x for x in (cert(c, c.meta["status"], c.meta["title"]) for c in certs) if x],
         "ssh": {"line": ssh, "blob": ssh.split()[1], "fingerprint": ssh_fingerprint(ssh)},
+        "age": (lambda ag: ag and {"title": ag["title"], "keys": ag["keys"]})(load_age(cfg)),
     }
 
 
@@ -466,6 +496,12 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
                              row("Identifier", fp(asp["uri"]))],
                             [row("Claims", "<br>".join(e(c) for c in asp["claims"])),
                              row("Private key", e(kx["private_key"]))]))
+    ag = load_age(cfg)
+    if ag:
+        current.append(item(ag["title"], "current", ag["use"],
+                            [row(f"Key {i}", fp(k["short"])) for i, k in enumerate(ag["keys"], 1)]
+                            + [row("Download", f'<a href="/{ag["file"]}">{e(ag["file"].split("/")[-1])}</a>')],
+                            [row(f"Key {i} private key", e(k["private_key"])) for i, k in enumerate(ag["keys"], 1)]))
     old = [pgp_item(k) for k in pgp if k.meta["status"] == "revoked"]
     old += [cert_item(c, c.meta["title"], c.meta["use"], c.meta["status"]) for c in certs
             if c.meta["status"] in ("retired", "compromised")]

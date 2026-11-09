@@ -114,6 +114,25 @@ hardware. A software copy of the key existed and was shared outside my control
 on 2026-11-09, so it's retired as of then. Documents I sent before that are
 genuine; if in doubt, ask me."""
 
+# ---------------------------------------------------------------- age
+
+# Recipients come from public/age/backups.txt (one age public key per line, in
+# the same order as bsoyka/sirloin's recipients.txt). private_keys is in that
+# order too. Kept deliberately vague: this page shouldn't map out where the
+# backup keys physically are.
+[age]
+title = "Backup encryption keys"
+file = "age/backups.txt"
+private_keys = [
+  "Held offline, split into parts kept by different people.",
+  "Held offline.",
+  "Held in my password manager.",
+]
+use = """
+My backups are encrypted to these three age keys before they leave my
+computer; any one of them can decrypt. They're listed so you can tell they're
+mine, not because anyone else needs to encrypt to them."""
+
 # ---------------------------------------------------------------- Keyoxide
 
 [keyoxide]

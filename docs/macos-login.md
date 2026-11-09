@@ -12,13 +12,19 @@ session, touch cached for 15 seconds.
    `sc_auth identities`, take the hash next to "PIV Authentication", and
    `sudo sc_auth pair -u $USER -h <hash>`. Enter your password when asked: that's
    what lets the new 9d key unlock the login keychain.
-3. Repeat with the backup YubiKey so either one works.
+3. Pair the **backup** YubiKey the same way, then unpair and re-pair the **primary**
+   last. Any paired card can log in, but only the most recently paired one also
+   unlocks the login keychain (found 2026-11-09). With the primary paired last it
+   does everything with just the PIN; the backup logs in but asks for the password
+   once to unlock the keychain.
 4. Lock the screen and unlock with the YubiKey to test.
 
 ## If a password prompt still appears after the PIN
 
 The old setup had this. Likely causes, in order:
 
+- **Another card was paired after this one.** Only the last-paired card unlocks
+  the keychain; re-pair the one you use day to day (step 3).
 - **Keychain not unlocked by the card.** The old 9d certificate was a bare
   self-signed one without Key Agreement, which macOS needs to use an EC key to
   unwrap the keychain. The new 9d cert has it. Re-pair (step 1–2) if it persists.

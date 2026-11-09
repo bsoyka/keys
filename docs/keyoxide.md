@@ -1,36 +1,51 @@
 # Keyoxide
 
-Keyoxide (https://keyoxide.org) links accounts and domains to the main PGP key.
-Each link has two halves, and Keyoxide checks that they point at each other:
+Keyoxide (https://keyoxide.org) shows, and checks live, that my domains and
+accounts belong to me. My profile is an ASP (Ariadne Signature Profile): a small
+file signed with its own Ed25519 key and served from this site, so editing it
+never needs the PGP master key.
 
-1. **On the key:** a notation `proof@ariadne.id=<where to look>`, listed in
-   `data/notations.txt` and added by `scripts/ca.sh notation` (needs the master key;
-   safe to re-run, it only adds what's missing).
-2. **On the account:** something that names the key's fingerprint,
-   `openpgp4fpr:bc4876bdc8ab5ab8c9cb81659497e30583d68d89`.
+- Profile source: `data/asp.toml` (name, description, claims)
+- Public key and identifier: `data/asp-public.json` (created by `scripts/ca.sh asp-init`)
+- Signed profile: `public/.well-known/aspe/id/<fingerprint>`
+- Identifier: `aspe:keys.bensoyka.com:<fingerprint>`
+- Private key: `~/doomsday/pki/keyoxide-asp.key.asc`, encrypted to my PGP key
 
-Keyoxide reads the key from keys.openpgp.org (or WKD), so after changing notations,
-re-upload the key there (docs/restore.md § E).
+Every link has two halves that point at each other: a **claim** in the profile, and
+a **proof** on the account that contains the profile's identifier. The PGP key is
+linked both ways too: the profile claims `openpgp4fpr:bc48…`, and the key carries a
+`proof@ariadne.id=aspe:keys.bensoyka.com:<fp>` notation (added once by
+`scripts/ca.sh notation`).
 
-Profile: https://keyoxide.org/BC4876BDC8AB5AB8C9CB81659497E30583D68D89
-(or https://keyoxide.org/wkd/ben%40bensoyka.com).
+## Current links
 
-## Current proofs
-
-| Proof | Account side | Key side |
+| Account | Claim in data/asp.toml | Proof on the account |
 |---|---|---|
-| bensoyka.com | apex TXT `openpgp4fpr:…` in bsoyka/infra | `proof@ariadne.id=dns:bensoyka.com?type=TXT` |
-| bsoyka.me | apex TXT `openpgp4fpr:…` in bsoyka/infra | `proof@ariadne.id=dns:bsoyka.me?type=TXT` |
+| Main PGP key | `openpgp4fpr:bc4876bdc8ab5ab8c9cb81659497e30583d68d89` | notation on the key (automatic) |
+| bensoyka.com | `dns:bensoyka.com?type=TXT` | apex TXT `aspe:keys.bensoyka.com:<fp>`, in bsoyka/infra |
+| bsoyka.me | `dns:bsoyka.me?type=TXT` | apex TXT `aspe:keys.bensoyka.com:<fp>`, in bsoyka/infra |
+| GitHub | `https://gist.github.com/bsoyka/<gist id>` | a public gist (below) |
 
-## Adding one
+## Setting up GitHub
 
-- **GitHub:** create a public gist named `openpgp.md` containing
-  `[Verifying my OpenPGP key: openpgp4fpr:bc4876bdc8ab5ab8c9cb81659497e30583d68d89]`,
-  then add `proof@ariadne.id=https://gist.github.com/bsoyka/<gist id>` to
-  `data/notations.txt`.
-- **Anything else** (Mastodon, Bluesky, Reddit, Hacker News, …): each service's
-  instructions are at https://docs.keyoxide.org/service-providers/. Same pattern:
-  fingerprint on the account, notation on the key.
+1. Create a **public** gist with one file named `proof.md` containing:
+   `[Verifying my Keyoxide profile: aspe:keys.bensoyka.com:<fp>]`
+2. Uncomment the gist line in `data/asp.toml` with the gist's ID.
+3. `scripts/ca.sh asp-sign`, then `make sign deploy`.
 
-Then `scripts/ca.sh notation`, `make sign deploy`, and re-upload to keys.openpgp.org.
-Add the proof to the table above.
+## Adding, changing or removing a link
+
+1. Edit `claims` in `data/asp.toml`. Each service's claim format and proof
+   location: https://docs.keyoxide.org/wiki/for-service-providers/
+2. Put the proof on the account (it must contain `aspe:keys.bensoyka.com:<fp>`).
+3. `scripts/ca.sh asp-sign` (YubiKey touch to decrypt the profile key; Wi-Fi can
+   stay on), then `make sign deploy`.
+
+Removing a claim works the same way and leaves nothing behind on the PGP key.
+
+## If the profile key is lost or exposed
+
+Make a new one (move `data/asp-public.json` aside, `scripts/ca.sh asp-init`). The
+identifier changes, so update every account proof and the DNS TXT records, run
+`scripts/ca.sh notation` to point the PGP key at the new identifier, and note the
+old identifier as retired in `data/keys.toml`.

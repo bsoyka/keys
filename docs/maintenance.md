@@ -29,11 +29,20 @@ a monthly scheduled task runs it and pings me. `make check` fails if `public/key
 2. The ceremony: Wi-Fi off, both YubiKeys at hand, `scripts/ca.sh ceremony`. Creates
    the root and the personal CA under it, issues a 9c cert with attestation on each
    YubiKey (it asks for one at a time), signs both
-   revocation lists, adds the root fingerprint to the PGP UID, and installs the
-   short RESTORE.md files in `~/doomsday/`.
+   revocation lists, adds the root fingerprint and Keyoxide link to the PGP UID, and installs the
+   short RESTORE.md files in `~/doomsday/`. It also creates the Keyoxide profile key
+   and signs `data/asp.toml`.
 3. Wi-Fi on. `make sign deploy`, then publish the PGP key (restore.md § E) since the
    notation changed it.
-4. Acrobat: [acrobat.md](acrobat.md).
+4. Keyoxide: add the apex TXT records `aspe:keys.bensoyka.com:<fp>` (identifier in
+   `data/asp-public.json`) for bensoyka.com and bsoyka.me in bsoyka/infra, and make
+   the GitHub gist ([keyoxide.md](keyoxide.md)).
+5. Acrobat: [acrobat.md](acrobat.md).
+
+## Keyoxide
+
+See [keyoxide.md](keyoxide.md). Editing account links only needs
+`scripts/ca.sh asp-sign` and `make sign deploy`.
 
 ## Adding another CA under the root (e.g. for friends)
 

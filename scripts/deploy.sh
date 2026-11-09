@@ -24,6 +24,7 @@ up "text/plain; charset=utf-8" '*.txt' '*.asc'
 up "application/pkix-cert"     '*.crt'
 up "application/pkix-crl"      '*.crl'
 up "application/vnd.fdf"       '*.fdf'
+up "application/jose"          '.well-known/aspe/id/*'
 
 # Remove objects that no longer exist in public/. Done by hand rather than
 # `sync --delete`, which would re-upload unmatched files with guessed types.

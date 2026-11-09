@@ -121,6 +121,15 @@ use = """
 A test certificate whose private key was later exposed. Never used for
 anything real. Treat anything signed with it as not from me."""
 
+# ---------------------------------------------------------------- Keyoxide
+
+[keyoxide]
+title = "Keyoxide profile"
+private_key = "Held offline, encrypted to my main PGP key."
+use = """
+Links my domains and accounts to my main PGP key. Keyoxide checks each link
+live, in both directions."""
+
 # ---------------------------------------------------------------- legacy
 
 [[legacy]]

@@ -1,0 +1,20 @@
+# My Keyoxide profile (ASP). Signed by `scripts/ca.sh asp-sign` into
+# public/.well-known/aspe/id/<fingerprint>; viewable at
+# https://keyoxide.org/aspe:keys.bensoyka.com:<fingerprint>
+#
+# Each claim needs a matching proof on the other side that contains this
+# profile's identifier (aspe:keys.bensoyka.com:<fingerprint>, in
+# data/asp-public.json). See docs/keyoxide.md.
+
+name = "Ben Soyka"
+description = "Student, software engineer and photographer in Minneapolis. My keys: https://keys.bensoyka.com"
+color = "#507dbc"
+
+claims = [
+  # Links this profile and my main PGP key both ways (the key carries a
+  # proof@ariadne.id notation pointing back here).
+  "openpgp4fpr:bc4876bdc8ab5ab8c9cb81659497e30583d68d89",
+  "dns:bensoyka.com?type=TXT",
+  "dns:bsoyka.me?type=TXT",
+  # "https://gist.github.com/bsoyka/GIST_ID",   # create the gist first (docs/keyoxide.md)
+]

@@ -291,6 +291,20 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
         if c.meta["status"] == "current":
             cert_block(c, {"root": "X.509 ROOT", "ca": "X.509 CA"}.get(c.meta.get("role"), "X.509"))
 
+    asp = load_asp()
+    if asp:
+        k = cfg["keyoxide"]
+        a(f"[KEYOXIDE] {k['title']}")
+        a(f"  Identifier:  {asp['uri']}")
+        a(f"  Profile:     {asp['url']}")
+        a(f"  Key:         Ed25519, fingerprint {asp['fingerprint']}")
+        for i, c in enumerate(asp["claims"]):
+            a(f"  {'Claims:' if i == 0 else '':<12} {c}")
+        a(f"  Private key: {k['private_key']}")
+        a(f"  Download:    {site}/{asp['file']}")
+        a(indent(k["use"]))
+        a("")
+
     a("=" * 70)
     a("RETIRED OR REVOKED (history only; don't encrypt to or newly trust)")
     a("=" * 70)
@@ -321,6 +335,20 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
         a(indent(item["use"]))
         a("")
     return "\n".join(L).rstrip() + "\n"
+
+
+def load_asp() -> dict | None:
+    """The Keyoxide (ASP) profile, if it's been created: public key info plus claims."""
+    pub = ROOT / "data" / "asp-public.json"
+    if not pub.exists():
+        return None
+    import json
+
+    info = json.loads(pub.read_text())
+    info["claims"] = tomllib.loads((ROOT / "data" / "asp.toml").read_text())["claims"]
+    info["url"] = f"https://keyoxide.org/{info['uri']}"
+    info["file"] = f".well-known/aspe/id/{info['fingerprint']}"
+    return info
 
 
 def ssh_fingerprint(line: str) -> str:
@@ -429,6 +457,14 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
                         [row("Key", f'<code class="fp">{e(ssh)}</code>')]))
     if wiki:
         current.append(pgp_item(wiki))
+    asp = load_asp()
+    if asp:
+        kx = cfg["keyoxide"]
+        current.append(item(kx["title"], "current", kx["use"],
+                            [row("Profile", f'<a href="{e(asp["url"])}">keyoxide.org</a>'),
+                             row("Identifier", fp(asp["uri"]))],
+                            [row("Claims", "<br>".join(e(c) for c in asp["claims"])),
+                             row("Private key", e(kx["private_key"]))]))
     old = [pgp_item(k) for k in pgp if k.meta["status"] == "revoked"]
     old += [cert_item(c, c.meta["title"], c.meta["use"], c.meta["status"]) for c in certs
             if c.meta["status"] in ("retired", "compromised")]
@@ -436,6 +472,7 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
                  [row("Private key", e(i["private_key"]))] if i.get("private_key") else []) for i in cfg.get("legacy", [])]
 
     root_sha1 = fp(root.sha1) if root.present else "<em>(listed below once issued)</em>"
+    keyoxide_url = asp["url"] if asp else f"https://keyoxide.org/{primary.fpr}"
 
     return f"""<!doctype html>
 <html lang="en">
@@ -544,7 +581,7 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
   <pre>curl -s {e(o['site'])}/keys.txt | gpg --verify</pre>
   <p>The signature should come from {fp(group4(primary.fpr))}.</p>
   <p>My domains and accounts are linked to this key on
-  <a href="https://keyoxide.org/{e(primary.fpr)}">Keyoxide</a>, which checks each link independently.</p>
+  <a href="{e(keyoxide_url)}">Keyoxide</a>, which checks each link independently.</p>
 </section>
 
 <section class="card legal">

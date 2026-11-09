@@ -8,8 +8,11 @@
 #   scripts/ca.sh revoke CA SERIAL    revoke a cert issued by CA (root|personal), then re-sign CRLs
 #   scripts/ca.sh new-intermediate NAME "Common Name"
 #                                     another CA under the root (needs a [NAME_ca] section in pki/openssl.cnf)
-#   scripts/ca.sh notation            add the root fingerprint and data/notations.txt (Keyoxide proofs)
-#                                     to the PGP key (needs the PGP master key); safe to re-run
+#   scripts/ca.sh notation            add the root fingerprint, the Keyoxide profile link and
+#                                     data/notations.txt to the PGP key (needs the PGP master key);
+#                                     safe to re-run
+#   scripts/ca.sh asp-init            create the Keyoxide profile key and sign data/asp.toml (once)
+#   scripts/ca.sh asp-sign            re-sign the Keyoxide profile after editing data/asp.toml
 #
 # Hierarchy: Root CA (offline, signs only intermediates)
 #            └─ Personal CA (offline, signs only my certs) └─ 9c document-signing cert
@@ -45,7 +48,10 @@ say()   { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 pause() { read -r -p "$* [enter to continue] " _; }
 
 pubname() { [[ "$1" == root ]] && echo root || echo "$1-ca"; }   # public/pki/<this>.crt/.crl
-enc_path() { echo "$DOOMSDAY/pki/$(pubname "$1").key.asc"; }
+enc_path() {   # encrypted backup of a key in doomsday
+  if [[ "$1" == asp ]]; then echo "$DOOMSDAY/pki/keyoxide-asp.key.asc"
+  else echo "$DOOMSDAY/pki/$(pubname "$1").key.asc"; fi
+}
 
 check_offline() {
   if route -n get default >/dev/null 2>&1; then
@@ -77,7 +83,7 @@ ca_key() {
   local name="$1" k="$RAM/$1.key"
   if [[ ! -f "$k" ]]; then
     [[ -f "$(enc_path "$name")" ]] || { echo "no $(enc_path "$name")" >&2; exit 1; }
-    echo "Decrypting $name CA key (YubiKey PIN + touch)…" >&2
+    echo "Decrypting the $name key (YubiKey PIN + touch)…" >&2
     gpg --quiet --decrypt --output "$k" "$(enc_path "$name")"
     chmod 600 "$k"
   fi
@@ -203,6 +209,20 @@ cmd_revoke() {
   cmd_crl
 }
 
+cmd_asp_init() {
+  [[ -e data/asp-public.json ]] && { echo "Keyoxide profile key already exists" >&2; exit 1; }
+  say "Creating the Keyoxide profile key (Ed25519)"
+  "$OPENSSL" genpkey -algorithm ed25519 -out "$RAM/asp.key"
+  python3 scripts/asp.py init "$RAM/asp.key" "$OPENSSL"
+  backup_key asp
+  python3 scripts/asp.py sign "$RAM/asp.key" "$OPENSSL"
+}
+
+cmd_asp_sign() {
+  python3 scripts/asp.py sign "$(ca_key asp)" "$OPENSSL"
+  echo "Now: make sign deploy"
+}
+
 cmd_notation() {
   # Root CA fingerprint plus everything in data/notations.txt, on the primary UID.
   # Already-present notations are skipped, so this is safe to re-run (e.g. after
@@ -211,6 +231,9 @@ cmd_notation() {
   local want=() have
   if [[ -f pki/ca/root/cert.pem ]]; then
     want+=("x509-root-sha256@bensoyka.com=$("$OPENSSL" x509 -in pki/ca/root/cert.pem -noout -fingerprint -sha256 | cut -d= -f2 | tr -d : | tr A-F a-f)")
+  fi
+  if [[ -f data/asp-public.json ]]; then   # link the key to the Keyoxide profile
+    want+=("proof@ariadne.id=$(python3 -c 'import json;print(json.load(open("data/asp-public.json"))["uri"])')")
   fi
   while IFS= read -r line; do
     [[ -z "$line" || "$line" == \#* ]] || want+=("$line")
@@ -239,7 +262,8 @@ cmd_notation() {
 
 main() {
   local cmd="${1:-}"; shift || true
-  check_offline
+  # Keyoxide profile edits don't touch a CA key, so they don't need Wi-Fi off.
+  [[ "$cmd" == asp-sign ]] || check_offline
   ramdisk_up
   case "$cmd" in
     issue-docsign)    cmd_issue_docsign "$@" ;;
@@ -247,12 +271,15 @@ main() {
     revoke)           cmd_revoke "$@" ;;
     new-intermediate) cmd_new_intermediate "$@" ;;
     notation)         cmd_notation ;;
+    asp-init)         cmd_asp_init ;;
+    asp-sign)         cmd_asp_sign ;;
     ceremony)
       cmd_init_root
       cmd_new_intermediate personal "Benjamin Soyka Personal CA"
       cmd_issue_docsign primary
       cmd_issue_docsign backup
       cmd_crl
+      cmd_asp_init
       cmd_notation
       cp docs/doomsday/pgp-keys-RESTORE.md "$DOOMSDAY/pgp-keys/RESTORE.md" ;;
     *) sed -n '2,13p' "$0"; exit 1 ;;

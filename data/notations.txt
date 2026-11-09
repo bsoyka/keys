@@ -1,9 +1,10 @@
-# Notations on the main PGP key's primary UID, added by `scripts/ca.sh notation`
-# (needs the master key). One per line; ones already on the key are skipped.
-# The root CA fingerprint notation is added automatically.
+# Extra notations on the main PGP key's primary UID, added by
+# `scripts/ca.sh notation` (needs the master key). One per line; ones already on
+# the key are skipped.
 #
-# Keyoxide identity proofs (https://keyoxide.org). Each needs its matching proof
-# on the other side; see docs/keyoxide.md.
-proof@ariadne.id=dns:bensoyka.com?type=TXT
-proof@ariadne.id=dns:bsoyka.me?type=TXT
-# proof@ariadne.id=https://gist.github.com/bsoyka/GIST_ID   (create the gist first)
+# Added automatically, so not listed here:
+#   x509-root-sha256@bensoyka.com=<root CA fingerprint>
+#   proof@ariadne.id=aspe:keys.bensoyka.com:<fp>   (the Keyoxide profile link)
+#
+# Account proofs (domains, GitHub, …) live in the Keyoxide profile, data/asp.toml,
+# so changing them doesn't need the master key. See docs/keyoxide.md.

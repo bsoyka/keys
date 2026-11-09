@@ -10,7 +10,6 @@
    "created": "2026-08-21",
    "private_key": "Held. Everyday parts on a hardware security key; full key in an offline, passphrase-protected backup.",
    "certified_by": [
-    "Previous PGP key (2021-2026), 2026-08-21, on ben@bensoyka.com, soyka006@umn.edu",
     "Wikipedia PGP key, 2026-08-21, on ben@bensoyka.com, soyka006@umn.edu"
    ],
    "uids": [
@@ -44,9 +43,7 @@
    "revoked": null,
    "created": "2022-12-24",
    "private_key": "Held, in an offline, passphrase-protected backup.",
-   "certified_by": [
-    "Previous PGP key (2021-2026), 2022-12-24, on bsoyka.wikipedia@gmail.com"
-   ],
+   "certified_by": [],
    "uids": [
     "Bsoyka <bsoyka.wikipedia@gmail.com>"
    ],
@@ -108,11 +105,59 @@
  ],
  "x509": [
   {
+   "title": "My root certificate authority",
+   "status": "current",
+   "file": "pki/root.crt",
+   "subject": "Benjamin Soyka Root CA",
+   "issuer": "Benjamin Soyka Root CA",
+   "not_before": "2026-11-09",
+   "not_after": "2046-11-09",
+   "sha256": "D45F9889C70362AD9BAE4CE2DFAF2BB8FD0FB2E314B41A3364993BB32B8FB56A",
+   "sha1": "DE034F80E6694B544250A61BE0B3BA9CFEA31D23",
+   "private_key": "Held offline, encrypted to my main PGP key."
+  },
+  {
+   "title": "My personal certificate authority",
+   "status": "current",
+   "file": "pki/personal-ca.crt",
+   "subject": "Benjamin Soyka Personal CA",
+   "issuer": "Benjamin Soyka Root CA",
+   "not_before": "2026-11-09",
+   "not_after": "2036-11-09",
+   "sha256": "7A4274CBC0BB0DAB5FCCE49D51A61836E24D7370159E6084643014848B67574C",
+   "sha1": "C7E99D5C62BFCF48E08827882770CEBD9374CB01",
+   "private_key": "Held offline, encrypted to my main PGP key."
+  },
+  {
+   "title": "Document signing certificate",
+   "status": "current",
+   "file": "pki/certs/docsign-primary.crt",
+   "subject": "Benjamin Soyka <ben@bensoyka.com>",
+   "issuer": "Benjamin Soyka Personal CA",
+   "not_before": "2026-11-09",
+   "not_after": "2031-11-09",
+   "sha256": "6CD644550592610C8CDCA34D3D4B4FFC8EAC91368CB5A5C07FB058C4E2102E54",
+   "sha1": "6A217397FAE0A49C6F29518839D39AA8B90E07C6",
+   "private_key": "On a hardware security key only. It can't be copied off, so there is no backup; if the hardware is lost I issue a new certificate."
+  },
+  {
+   "title": "Document signing certificate (backup)",
+   "status": "current",
+   "file": "pki/certs/docsign-backup.crt",
+   "subject": "Benjamin Soyka <ben@bensoyka.com>",
+   "issuer": "Benjamin Soyka Personal CA",
+   "not_before": "2026-11-09",
+   "not_after": "2031-11-09",
+   "sha256": "5D828D548F80D6A81FC233228A8C3E0FD2407399378CA0C1A24C9783B347686B",
+   "sha1": "FAFE4253D39A1723B33D7EDD8760A6926CA140AE",
+   "private_key": "On a second hardware security key, kept somewhere safe. Can't be copied off."
+  },
+  {
    "title": "Earlier signing certificate (Aug\u2013Nov 2026)",
    "status": "retired",
    "file": "pki/retired/2026-08-24-p256-signing.crt",
-   "subject": "Benjamin Soyka",
-   "issuer": "Benjamin Soyka",
+   "subject": " CN=Benjamin Soyka",
+   "issuer": " CN=Benjamin Soyka",
    "not_before": "2026-08-24",
    "not_after": "2036-08-21",
    "sha256": "056C87368DAA9AFE7863290C0CD24E84A4621383D7EA315DAF00955295E732BA",

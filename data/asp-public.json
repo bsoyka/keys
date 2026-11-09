@@ -1,0 +1,9 @@
+{
+ "jwk": {
+  "crv": "Ed25519",
+  "kty": "OKP",
+  "x": "gpu-kaqgpuVuaRW47Up1u3zwtJXF_FB7WsO3_g60wbU"
+ },
+ "fingerprint": "NGXUYTLMNMHQGGMPHUDLAWXOLY",
+ "uri": "aspe:keys.bensoyka.com:NGXUYTLMNMHQGGMPHUDLAWXOLY"
+}

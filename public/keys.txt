@@ -1,0 +1,174 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA256
+
+Key manifest: Benjamin Soyka <ben@bensoyka.com>
+https://keys.bensoyka.com/keys.txt
+
+This file is clearsigned with my primary PGP key:
+  BC48 76BD C8AB 5AB8 C9CB  8165 9497 E305 83D6 8D89
+It is the authoritative list of my keys and certificates. If something
+claims to be my key and isn't listed here as current, don't trust it.
+The signature date is the date of this version.
+
+======================================================================
+CURRENT
+======================================================================
+
+[PGP] Main PGP key
+  Fingerprint: BC48 76BD C8AB 5AB8 C9CB  8165 9497 E305 83D6 8D89
+  Type:        ed25519, created 2026-08-21 (current)
+  UID:         Benjamin Soyka <ben@bensoyka.com>
+  UID:         Ben Soyka <soyka006@umn.edu>
+  UID:         Benjamin Soyka <bensoyka6@gmail.com>
+  Subkey:      C7B826D38555AFA3AE7FA216F201E8FA2D72139F  Sign, ed25519, expires 2029-08-20
+  Subkey:      411A48120A5A2F1DC85CDD67AEE88FCE4521BF59  Encrypt, cv25519, expires 2029-08-20
+  Subkey:      4CD451BCEC8DB32C03B5026CC83BA4E193E4483E  Auth, ed25519, expires 2029-08-20
+  Certified:   Wikipedia PGP key, 2026-08-21, on ben@bensoyka.com, soyka006@umn.edu
+  Private key: Held. Everyday parts on a hardware security key; full key in an offline, passphrase-protected backup.
+  Download:    https://keys.bensoyka.com/pgp/BC4876BDC8AB5AB8C9CB81659497E30583D68D89.asc
+               https://keys.bensoyka.com/pgp.asc
+  Lookup:      gpg --locate-keys ben@bensoyka.com   (WKD)
+  My main key. Use it to send me encrypted messages or to check things I've
+  signed: emails, files, Git commits, and this list. Its everyday parts live on
+  a hardware security key and can't be copied off it; the master part is kept
+  offline. Its authentication part doubles as my SSH key.
+
+[PGP] Wikipedia PGP key
+  Fingerprint: 13AB AA10 7960 069C 2D1B  F9D0 D193 7DCD F9A5 24BC
+  Type:        rsa4096, created 2022-12-24 (current)
+  UID:         Bsoyka <bsoyka.wikipedia@gmail.com>
+  Subkey:      582908A0B8A1C66BACD0FBA48151FB3DB546C371  Encrypt, rsa4096
+  Private key: Held, in an offline, passphrase-protected backup.
+  Download:    https://keys.bensoyka.com/pgp/13ABAA107960069C2D1BF9D0D1937DCDF9A524BC.asc
+  A separate key for Wikipedia-related correspondence as User:Bsoyka, also
+  published on my Wikipedia user page. Rarely used, but still active.
+
+[SSH] Authentication subkey of the primary PGP key
+  ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF9pJPHws9mluZNCA65sUu4TgH/1gKVVPUlW7vdqkNtN openpgp:0x93E4483E
+  Download:    https://keys.bensoyka.com/ssh.txt
+
+[X.509 ROOT] My root certificate authority
+  Subject:     Benjamin Soyka Root CA
+  Serial:      936DB68EE8744CF5F0A2656BF8CEE3F8
+  Valid:       2026-11-09 to 2046-11-09
+  SHA-256:     D4:5F:98:89:C7:03:62:AD:9B:AE:4C:E2:DF:AF:2B:B8:FD:0F:B2:E3:14:B4:1A:33:64:99:3B:B3:2B:8F:B5:6A
+  SHA-1:       DE:03:4F:80:E6:69:4B:54:42:50:A6:1B:E0:B3:BA:9C:FE:A3:1D:23   (what Acrobat shows)
+  Private key: Held offline, encrypted to my main PGP key.
+  Download:    https://keys.bensoyka.com/pki/root.crt
+  Revocation:  https://keys.bensoyka.com/pki/root.crl
+  The one certificate to trust. It only certifies my own certificate
+  authorities, its key is kept offline, and nothing below it can create further
+  authorities. Trust it once and every document I sign will show as valid,
+  including after I renew my signing certificate.
+
+[X.509 CA] My personal certificate authority
+  Subject:     Benjamin Soyka Personal CA
+  Issuer:      Benjamin Soyka Root CA
+  Serial:      16685E103357FB7F8512FBF8DFD5FF3CE222C900
+  Valid:       2026-11-09 to 2036-11-09
+  SHA-256:     7A:42:74:CB:C0:BB:0D:AB:5F:CC:E4:9D:51:A6:18:36:E2:4D:73:70:15:9E:60:84:64:30:14:84:8B:67:57:4C
+  SHA-1:       C7:E9:9D:5C:62:BF:CF:48:E0:88:27:88:27:70:CE:BD:93:74:CB:01   (what Acrobat shows)
+  Private key: Held offline, encrypted to my main PGP key.
+  Download:    https://keys.bensoyka.com/pki/personal-ca.crt
+  Revocation:  https://keys.bensoyka.com/pki/personal-ca.crl
+  Sits under the root and issues the certificates I personally sign with. Its
+  key is also kept offline. You don't need to trust it separately.
+
+[X.509] Document signing certificate
+  Subject:     Benjamin Soyka <ben@bensoyka.com>
+  Issuer:      Benjamin Soyka Personal CA
+  Serial:      08F40662D5E2D9F57B2672678786FE5440EFE018
+  Valid:       2026-11-09 to 2031-11-09
+  SHA-256:     6C:D6:44:55:05:92:61:0C:8C:DC:A3:4D:3D:4B:4F:FC:8E:AC:91:36:8C:B5:A5:C0:7F:B0:58:C4:E2:10:2E:54
+  SHA-1:       6A:21:73:97:FA:E0:A4:9C:6F:29:51:88:39:D3:9A:A8:B9:0E:07:C6   (what Acrobat shows)
+  Private key: On a hardware security key only. It can't be copied off, so there is no backup; if the hardware is lost I issue a new certificate.
+  Download:    https://keys.bensoyka.com/pki/certs/docsign-primary.crt
+  Attestation:  https://keys.bensoyka.com/pki/attestation/docsign-primary-attest.crt
+    via f9:  https://keys.bensoyka.com/pki/attestation/docsign-primary-f9.crt
+  What I sign PDFs with. Its private key was created on a hardware security
+  key and can't be copied off it; the attestation file proves that, checkable
+  against the hardware maker's own certificate authority.
+
+[X.509] Document signing certificate (backup)
+  Subject:     Benjamin Soyka <ben@bensoyka.com>
+  Issuer:      Benjamin Soyka Personal CA
+  Serial:      541F36739D8E596C57644A94523FCF40259A5563
+  Valid:       2026-11-09 to 2031-11-09
+  SHA-256:     5D:82:8D:54:8F:80:D6:A8:1F:C2:33:22:8A:8C:3E:0F:D2:40:73:99:37:8C:A0:C1:A2:4C:97:83:B3:47:68:6B
+  SHA-1:       FA:FE:42:53:D3:9A:17:23:B3:3D:7E:DD:87:60:A6:92:6C:A1:40:AE   (what Acrobat shows)
+  Private key: On a second hardware security key, kept somewhere safe. Can't be copied off.
+  Download:    https://keys.bensoyka.com/pki/certs/docsign-backup.crt
+  Attestation:  https://keys.bensoyka.com/pki/attestation/docsign-backup-attest.crt
+    via f9:  https://keys.bensoyka.com/pki/attestation/docsign-backup-f9.crt
+  The same as above, on my backup hardware key, so I can still sign if the
+  first one is lost. Signatures from either are equally mine.
+
+[KEYOXIDE] Keyoxide profile
+  Identifier:  aspe:keys.bensoyka.com:NGXUYTLMNMHQGGMPHUDLAWXOLY
+  Profile:     https://keyoxide.org/aspe:keys.bensoyka.com:NGXUYTLMNMHQGGMPHUDLAWXOLY
+  Key:         Ed25519, fingerprint NGXUYTLMNMHQGGMPHUDLAWXOLY
+  Claims:      openpgp4fpr:bc4876bdc8ab5ab8c9cb81659497e30583d68d89
+               dns:bensoyka.com?type=TXT
+               dns:bsoyka.me?type=TXT
+  Private key: Held offline, encrypted to my main PGP key.
+  Download:    https://keys.bensoyka.com/.well-known/aspe/id/NGXUYTLMNMHQGGMPHUDLAWXOLY
+  Links my domains and accounts to my main PGP key. Keyoxide checks each link
+  live, in both directions.
+
+======================================================================
+RETIRED OR REVOKED (history only; don't encrypt to or newly trust)
+======================================================================
+
+[PGP] Previous PGP key (2021-2026)
+  Fingerprint: 0CA7 CC16 A64B 68F3 048E  E8FE A5E7 26D5 A652 28EA
+  Type:        rsa3072, created 2021-01-24 (revoked 2026-08-21)
+  UID:         Benjamin Soyka <hello@bsoyka.me>  [revoked]
+  UID:         Benjamin Soyka <bensoyka@icloud.com>  [revoked]
+  UID:         Benjamin Soyka <michael.soyka3@gmail.com>  [revoked]
+  UID:         Benjamin Soyka  [revoked]
+  UID:         Benjamin Soyka <bensoyka6@gmail.com>  [revoked]
+  UID:         Benjamin Soyka <soyka006@umn.edu>  [revoked]
+  Subkey:      EB2968D0F1DD9B0CB9767E907BED20103FBB4DB5  Encrypt, rsa3072
+  Certified:   Main PGP key, 2026-08-21, on hello@bsoyka.me, Benjamin Soyka, bensoyka6@gmail.com, soyka006@umn.edu
+  Private key: Held offline, encrypted to my main key, only to decrypt old messages.
+  Download:    https://keys.bensoyka.com/pgp/0CA7CC16A64B68F3048EE8FEA5E726D5A65228EA.asc
+  Replaced on 2026-08-21 as routine maintenance, not because anything went
+  wrong. Signatures it made before then are still genuine. Don't encrypt to it.
+
+[PGP] Original PGP key (2020-2025)
+  Fingerprint: 91FA 6964 6625 ECAB 5DE4  A697 3779 9464 147A 3418
+  Type:        rsa2048, created 2020-06-15, expires 2022-06-15 (revoked 2025-07-19)
+  UID:         Benjamin Soyka <bensoyka@icloud.com>  [revoked]
+  Subkey:      287579F9963C99D75B1DF38B20A81F2E9E522C59  Encrypt, rsa2048, expires 2022-06-15
+  Private key: Held offline, passphrase-protected, only to decrypt old messages.
+  Download:    https://keys.bensoyka.com/pgp/91FA69646625ECAB5DE4A69737799464147A3418.asc
+  Revoked 2025-07-19. Listed for completeness.
+
+[X.509] Earlier signing certificate (Aug–Nov 2026)
+  Subject:      CN=Benjamin Soyka
+  Serial:      EE36815AD966D5FE
+  Valid:       2026-08-24 to 2036-08-21
+  SHA-256:     05:6C:87:36:8D:AA:9A:FE:78:63:29:0C:0C:D2:4E:84:A4:62:13:83:D7:EA:31:5D:AF:00:95:52:95:E7:32:BA
+  SHA-1:       E9:7B:60:49:4F:0C:BE:1C:71:10:CF:C4:BF:F2:5C:9F:54:A1:7D:40   (what Acrobat shows)
+  Private key: Was on a hardware security key, but a software copy existed and was shared outside my control on 2026-11-09. Removed from the hardware and all copies deleted.
+  Download:    https://keys.bensoyka.com/pki/retired/2026-08-24-p256-signing.crt
+  Used to sign documents from August to November 2026, with its key stored on
+  hardware. A software copy of the key existed and was shared outside my control
+  on 2026-11-09, so it's retired as of then. Documents I sent before that are
+  genuine; if in doubt, ask me.
+
+======================================================================
+LEGACY
+======================================================================
+
+[LEGACY] Keybase
+  Private key: Keybase's own device keys, not part of this setup.
+  My old Keybase proof stays up so existing checks don't break, but Keybase
+  isn't maintained anymore. My accounts are now linked to my key on Keyoxide.
+-----BEGIN PGP SIGNATURE-----
+
+iHUEARYIAB0WIQTHuCbThVWvo65/ohbyAej6LXITnwUCavIWKQAKCRDyAej6LXIT
+n2ewAQCgbWnUldv9rDRVrxLuRQMqpD9A//elUwsjPdb8JlslxAD9GPDCz9k7056l
+hHkyh5XUSDX6m5xfmjlpO1NmqQ8ZXgQ=
+=q/6c
+-----END PGP SIGNATURE-----

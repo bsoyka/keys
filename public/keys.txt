@@ -110,6 +110,7 @@ CURRENT
   Claims:      openpgp4fpr:bc4876bdc8ab5ab8c9cb81659497e30583d68d89
                dns:bensoyka.com?type=TXT
                dns:bsoyka.me?type=TXT
+               https://gist.github.com/bsoyka/cba00e8777bcccad246129bcb2e7e15d
   Private key: Held offline, encrypted to my main PGP key.
   Download:    https://keys.bensoyka.com/.well-known/aspe/id/NGXUYTLMNMHQGGMPHUDLAWXOLY
   Links my domains and accounts to my main PGP key. Keyoxide checks each link
@@ -167,8 +168,8 @@ LEGACY
   isn't maintained anymore. My accounts are now linked to my key on Keyoxide.
 -----BEGIN PGP SIGNATURE-----
 
-iHUEARYIAB0WIQTHuCbThVWvo65/ohbyAej6LXITnwUCavIWKQAKCRDyAej6LXIT
-n2ewAQCgbWnUldv9rDRVrxLuRQMqpD9A//elUwsjPdb8JlslxAD9GPDCz9k7056l
-hHkyh5XUSDX6m5xfmjlpO1NmqQ8ZXgQ=
-=q/6c
+iHUEARYIAB0WIQTHuCbThVWvo65/ohbyAej6LXITnwUCavIZ7QAKCRDyAej6LXIT
+n3KgAP9Gy//8vC5Yz077YOp05QrQhMZDF5mZh+/CIx4VPEmDfwEA9+eMxgbtoET+
+TvGyCShqo4cUJ1M4CcugfH2PjEmywAE=
+=XD1L
 -----END PGP SIGNATURE-----

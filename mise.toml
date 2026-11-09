@@ -1,2 +1,4 @@
 [tools]
 terraform = "1.15"
+# build.py, asp.py and check-expiry.py need tomllib (3.11+); macOS's python3 is older.
+python = "3.14"

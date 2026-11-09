@@ -14,6 +14,10 @@ Yubico's PKCS#11 module.
    (e.g. `http://timestamp.digicert.com`) and set it as default. Timestamped
    signatures stay valid after the cert expires.
 5. Trust my own root on this machine too (below), so my own signatures show as valid.
+6. Also import `public/pki/personal-ca.crt` under Trusted Certificates (no trust
+   boxes ticked). The YubiKey only holds my own cert, so this is how Acrobat finds
+   the middle of the chain and embeds it in each signature. Recipients' Acrobat can
+   also fetch it from the URL inside my cert, but embedding works offline.
 
 After a new 9c cert (`scripts/ca.sh issue-docsign`), refresh the token in step 3.
 

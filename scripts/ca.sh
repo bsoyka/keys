@@ -1,41 +1,49 @@
 #!/usr/bin/env bash
-# Personal root CA operations. macOS, run from the repo root with Wi-Fi off.
+# CA operations. macOS, run from the repo root with Wi-Fi off.
 #
-#   scripts/ca.sh init-root       create the root CA (once, ever)
-#   scripts/ca.sh issue-docsign   new on-device key in PIV slot 9c + root-issued cert
-#   scripts/ca.sh crl             re-sign the revocation list (yearly)
-#   scripts/ca.sh revoke SERIAL   revoke an issued cert, then re-sign the CRL
-#   scripts/ca.sh notation        add root fingerprint to the PGP UID (needs PGP master)
-#   scripts/ca.sh ceremony        init-root + issue-docsign + crl + notation, in order
+#   scripts/ca.sh ceremony            first-time setup: root, personal CA, 9c cert, CRLs, notation
+#   scripts/ca.sh issue-docsign       new on-device key in YubiKey PIV slot 9c + cert from the personal CA
+#   scripts/ca.sh crl                 re-sign every CA's revocation list (yearly)
+#   scripts/ca.sh revoke CA SERIAL    revoke a cert issued by CA (root|personal), then re-sign CRLs
+#   scripts/ca.sh new-intermediate NAME "Common Name"
+#                                     another CA under the root (needs a [NAME_ca] section in pki/openssl.cnf)
+#   scripts/ca.sh notation            put the root fingerprint on the PGP UID (needs the PGP master key)
+#
+# Hierarchy: Root CA (offline, signs only intermediates)
+#            └─ Personal CA (offline, signs only my certs) └─ 9c document-signing cert
 #
 # Key decisions:
-# - Plaintext private keys only ever exist on a RAM disk that's destroyed on exit,
+# - Plaintext CA keys only ever exist on a RAM disk that's destroyed on exit,
 #   so they never touch the SSD, Time Machine or Spotlight.
-# - The root key at rest is encrypted to my PGP key (encryption subkey on the
-#   YubiKey; the doomsday master backup can also decrypt it). No extra passphrase
-#   to remember, and it's recoverable by the same path as everything else.
-# - The 9c key is generated on the YubiKey and never exported. Its attestation is
-#   published so anyone can check that against Yubico's CA.
+# - CA keys at rest are encrypted to my PGP key (encryption subkey on the
+#   YubiKey; the doomsday master backup can also decrypt them). Nothing extra
+#   to memorize, and they're recoverable the same way as everything else.
+# - Every new encrypted key is test-decrypted and compared before going on.
+# - The 9c key is generated on the YubiKey and never exported; its attestation
+#   is published so anyone can check that against Yubico's CA.
 
 set -euo pipefail
 
 PGP_FPR=BC4876BDC8AB5AB8C9CB81659497E30583D68D89
 DOOMSDAY="${DOOMSDAY:-$HOME/doomsday}"
-ROOT_KEY_ENC="$DOOMSDAY/pki/root-ca.key.asc"
 SUBJ_DOCSIGN="/CN=Benjamin Soyka/emailAddress=ben@bensoyka.com/C=US"
-ROOT_DAYS=7305   # 20 years
+ROOT_DAYS=7305           # 20 years
+INTERMEDIATE_DAYS=3653   # 10 years
 
 export KEYS_REPO="$PWD"
 CNF="$KEYS_REPO/pki/openssl.cnf"
 [[ -f "$CNF" ]] || { echo "run from the repo root" >&2; exit 1; }
 
 # Homebrew OpenSSL 3; macOS's /usr/bin/openssl is LibreSSL and lacks pieces we use.
-OPENSSL="$(brew --prefix openssl@3 2>/dev/null)/bin/openssl"
+OPENSSL="${OPENSSL:-$(brew --prefix openssl@3 2>/dev/null)/bin/openssl}"
 [[ -x "$OPENSSL" ]] || { echo "brew install openssl@3" >&2; exit 1; }
 for t in ykman gpg; do command -v "$t" >/dev/null || { echo "missing $t" >&2; exit 1; }; done
 
 say()   { printf '\n\033[1m== %s\033[0m\n' "$*"; }
 pause() { read -r -p "$* [enter to continue] " _; }
+
+pubname() { [[ "$1" == root ]] && echo root || echo "$1-ca"; }   # public/pki/<this>.crt/.crl
+enc_path() { echo "$DOOMSDAY/pki/$(pubname "$1").key.asc"; }
 
 check_offline() {
   if route -n get default >/dev/null 2>&1; then
@@ -56,49 +64,79 @@ ramdisk_up() {
 }
 ramdisk_down() {
   [[ -n "$RAM" && -d "$RAM" ]] || return 0
-  # Throwaway GnuPG home (notation step) has its own agent; stop it first.
   [[ -d "$RAM/gnupg" ]] && GNUPGHOME="$RAM/gnupg" gpgconf --kill all 2>/dev/null || true
   hdiutil detach "$RAM" -force >/dev/null && echo "RAM disk destroyed."
   RAM=""
 }
 
-# Decrypt the root key onto the RAM disk (YubiKey PIN + touch).
-load_root_key() {
-  [[ -f "$ROOT_KEY_ENC" ]] || { echo "no $ROOT_KEY_ENC" >&2; exit 1; }
-  export ROOT_KEY="$RAM/root.key"
-  gpg --quiet --decrypt --output "$ROOT_KEY" "$ROOT_KEY_ENC"
-  chmod 600 "$ROOT_KEY"
+# Path of a CA's plaintext key on the RAM disk, decrypting it first if needed
+# (YubiKey PIN + touch).
+ca_key() {
+  local name="$1" k="$RAM/$1.key"
+  if [[ ! -f "$k" ]]; then
+    [[ -f "$(enc_path "$name")" ]] || { echo "no $(enc_path "$name")" >&2; exit 1; }
+    echo "Decrypting $name CA key (YubiKey PIN + touch)…" >&2
+    gpg --quiet --decrypt --output "$k" "$(enc_path "$name")"
+    chmod 600 "$k"
+  fi
+  echo "$k"
+}
+
+# Encrypt a freshly generated CA key to the PGP key, then prove the backup opens.
+backup_key() {
+  local name="$1" k="$RAM/$1.key" out
+  out="$(enc_path "$name")"
+  mkdir -p "$DOOMSDAY/pki"
+  [[ -e "$out" ]] && { echo "$out already exists; refusing to overwrite" >&2; exit 1; }
+  gpg --batch --yes --trust-model always --armor -r "$PGP_FPR" --output "$out" --encrypt "$k"
+  echo "Test-decrypting the $name backup (YubiKey PIN + touch)…"
+  gpg --quiet --decrypt --output "$RAM/check.key" "$out"
+  cmp -s "$k" "$RAM/check.key" || { echo "BACKUP MISMATCH for $name, stop here" >&2; exit 1; }
+  rm -f "$RAM/check.key"
+  echo "Backup verified: $out"
+}
+
+init_db() {
+  local d="pki/ca/$1"
+  mkdir -p "$d/newcerts"
+  [[ -f "$d/index.txt" ]] || : > "$d/index.txt"
+  [[ -f "$d/crlnumber" ]] || echo 01 > "$d/crlnumber"
 }
 
 der() { "$OPENSSL" "$1" -in "$2" -outform DER -out "$3"; }
 
 cmd_init_root() {
-  [[ -e pki/ca/root.pem ]] && { echo "root already exists; refusing to overwrite" >&2; exit 1; }
-  say "Creating root CA key (P-384) on the RAM disk"
-  export ROOT_KEY="$RAM/root.key"
-  "$OPENSSL" genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-384 -out "$ROOT_KEY"
-  "$OPENSSL" req -config "$CNF" -new -x509 -key "$ROOT_KEY" -sha384 -days "$ROOT_DAYS" \
-    -set_serial "0x$("$OPENSSL" rand -hex 16)" -out pki/ca/root.pem
-  der x509 pki/ca/root.pem public/pki/root.crt
-  "$OPENSSL" x509 -in pki/ca/root.pem -noout -subject -enddate -fingerprint -sha256
-
-  say "Encrypting root key to PGP key $PGP_FPR"
-  mkdir -p "$DOOMSDAY/pki"
-  gpg --batch --yes --trust-model always --armor -r "$PGP_FPR" \
-    --output "$ROOT_KEY_ENC" --encrypt "$ROOT_KEY"
-
-  say "Test-decrypting the backup (YubiKey PIN + touch) before going further"
-  local check="$RAM/check.key"
-  gpg --quiet --decrypt --output "$check" "$ROOT_KEY_ENC"
-  cmp -s "$ROOT_KEY" "$check" || { echo "BACKUP MISMATCH, stop here" >&2; exit 1; }
-  rm -f "$check"
+  [[ -e pki/ca/root/cert.pem ]] && { echo "root already exists; refusing to overwrite" >&2; exit 1; }
+  say "Creating the root CA (P-384, ${ROOT_DAYS} days)"
+  init_db root
+  "$OPENSSL" genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-384 -out "$RAM/root.key"
+  "$OPENSSL" req -config "$CNF" -new -x509 -key "$RAM/root.key" -sha384 -days "$ROOT_DAYS" \
+    -set_serial "0x$("$OPENSSL" rand -hex 16)" -out pki/ca/root/cert.pem
+  der x509 pki/ca/root/cert.pem public/pki/root.crt
+  "$OPENSSL" x509 -in pki/ca/root/cert.pem -noout -subject -enddate -fingerprint -sha256
+  backup_key root
   cp docs/doomsday/pki-RESTORE.md "$DOOMSDAY/pki/RESTORE.md"
-  echo "Root key backup verified: $ROOT_KEY_ENC"
+}
+
+cmd_new_intermediate() {
+  local name="${1:?name}" cn="${2:?common name}"
+  grep -q "^\[ ${name}_ca \]" "$CNF" || { echo "add a [ ${name}_ca ] section to $CNF first" >&2; exit 1; }
+  [[ -e "pki/ca/$name/cert.pem" ]] && { echo "$name CA already exists" >&2; exit 1; }
+  say "Creating the $name CA under the root"
+  init_db "$name"
+  "$OPENSSL" genpkey -algorithm EC -pkeyopt ec_paramgen_curve:P-384 -out "$RAM/$name.key"
+  "$OPENSSL" req -new -key "$RAM/$name.key" -subj "/CN=$cn/O=Benjamin Soyka/C=US" -out "$RAM/$name.csr"
+  CA_KEY="$(ca_key root)" "$OPENSSL" ca -config "$CNF" -name root_ca -batch -notext \
+    -extensions v3_intermediate -days "$INTERMEDIATE_DAYS" \
+    -subj "/CN=$cn/O=Benjamin Soyka/C=US" -in "$RAM/$name.csr" -out "pki/ca/$name/cert.pem"
+  der x509 "pki/ca/$name/cert.pem" "public/pki/$(pubname "$name").crt"
+  "$OPENSSL" verify -CAfile pki/ca/root/cert.pem "pki/ca/$name/cert.pem"
+  backup_key "$name"
 }
 
 cmd_issue_docsign() {
-  [[ -n "${ROOT_KEY:-}" && -f "$ROOT_KEY" ]] || load_root_key
-  say "Generating RSA-3072 key ON the YubiKey in slot 9c (replaces what's there)"
+  local key; key="$(ca_key personal)"
+  say "Generating an RSA-3072 key ON the YubiKey in slot 9c (replaces what's there)"
   echo "This destroys the current 9c key. Signatures already made with it stay valid."
   pause "Plug in the YubiKey."
   ykman piv keys generate --algorithm RSA3072 --pin-policy ALWAYS --touch-policy ALWAYS \
@@ -115,9 +153,10 @@ cmd_issue_docsign() {
   [[ "$a" == "$b" ]] || { echo "attestation doesn't match generated key" >&2; exit 1; }
   "$OPENSSL" verify -partial_chain -CAfile "$RAM/f9.pem" "$RAM/attest.pem"
 
-  say "Signing the certificate with the root"
-  "$OPENSSL" ca -config "$CNF" -batch -notext -extensions v3_docsign \
-    -subj "$SUBJ_DOCSIGN" -in "$RAM/9c.csr" -out "$RAM/leaf.pem"
+  say "Signing the certificate with the personal CA"
+  CA_KEY="$key" "$OPENSSL" ca -config "$CNF" -name personal_ca -batch -notext \
+    -extensions v3_docsign -subj "$SUBJ_DOCSIGN" -in "$RAM/9c.csr" -out "$RAM/leaf.pem"
+  "$OPENSSL" verify -CAfile pki/ca/root/cert.pem -untrusted pki/ca/personal/cert.pem "$RAM/leaf.pem"
   local serial
   serial=$("$OPENSSL" x509 -in "$RAM/leaf.pem" -noout -serial | cut -d= -f2)
   mkdir -p public/pki/certs public/pki/attestation
@@ -131,31 +170,35 @@ cmd_issue_docsign() {
   say "Importing the certificate into slot 9c"
   ykman piv certificates import 9c "$RAM/leaf.pem"
   "$OPENSSL" x509 -in "$RAM/leaf.pem" -noout -subject -issuer -enddate -ext keyUsage,extendedKeyUsage
-  echo "Issued serial $serial. Add a line to data/keys.toml history if you want it named."
+  echo "Issued serial $serial."
 }
 
 cmd_crl() {
-  [[ -n "${ROOT_KEY:-}" && -f "$ROOT_KEY" ]] || load_root_key
-  say "Signing the revocation list (valid ~400 days)"
-  "$OPENSSL" ca -config "$CNF" -gencrl -out "$RAM/root.crl.pem"
-  der crl "$RAM/root.crl.pem" public/pki/root.crl
-  "$OPENSSL" crl -in public/pki/root.crl -inform DER -noout -lastupdate -nextupdate
+  local d name
+  for d in pki/ca/*/; do
+    name=$(basename "$d")
+    [[ -f "$d/cert.pem" ]] || continue
+    say "Signing the $name CA's revocation list (valid ~400 days)"
+    CA_KEY="$(ca_key "$name")" "$OPENSSL" ca -config "$CNF" -name "${name}_ca" -gencrl -out "$RAM/$name.crl.pem"
+    der crl "$RAM/$name.crl.pem" "public/pki/$(pubname "$name").crl"
+    "$OPENSSL" crl -in "public/pki/$(pubname "$name").crl" -inform DER -noout -nextupdate
+  done
 }
 
 cmd_revoke() {
-  local serial="${1:?serial}"
-  load_root_key
-  "$OPENSSL" ca -config "$CNF" -revoke "pki/ca/newcerts/$serial.pem" -crl_reason keyCompromise
+  local ca="${1:?ca}" serial="${2:?serial}"
+  CA_KEY="$(ca_key "$ca")" "$OPENSSL" ca -config "$CNF" -name "${ca}_ca" \
+    -revoke "pki/ca/$ca/newcerts/$serial.pem" -crl_reason keyCompromise
   cmd_crl
 }
 
 cmd_notation() {
   local sha
-  sha=$("$OPENSSL" x509 -in pki/ca/root.pem -noout -fingerprint -sha256 | cut -d= -f2 | tr -d : | tr A-F a-f)
-  say "Adding root CA fingerprint to the PGP UID (needs the master key backup)"
+  sha=$("$OPENSSL" x509 -in pki/ca/root/cert.pem -noout -fingerprint -sha256 | cut -d= -f2 | tr -d : | tr A-F a-f)
+  say "Adding the root CA fingerprint to the PGP UID (needs the master key backup)"
   export GNUPGHOME="$RAM/gnupg"; mkdir -m 700 "$GNUPGHOME"
   gpg --quiet --import "$DOOMSDAY/pgp-keys/current-83D68D89/secret-master-$PGP_FPR.asc"
-  gpg --quiet --import public/pgp/$PGP_FPR.asc   # bring in any newer public sigs
+  gpg --quiet --import "public/pgp/$PGP_FPR.asc"   # bring in any newer public sigs
   cat <<EOF
 
 In the gpg prompt that opens, type exactly:
@@ -167,8 +210,8 @@ In the gpg prompt that opens, type exactly:
 EOF
   pause "Ready?"
   gpg --edit-key "$PGP_FPR"
-  gpg --armor --export "$PGP_FPR" > public/pgp/$PGP_FPR.asc
-  cp public/pgp/$PGP_FPR.asc "$DOOMSDAY/pgp-keys/current-83D68D89/pub-$PGP_FPR.asc"
+  gpg --armor --export "$PGP_FPR" > "public/pgp/$PGP_FPR.asc"
+  cp "public/pgp/$PGP_FPR.asc" "$DOOMSDAY/pgp-keys/current-83D68D89/pub-$PGP_FPR.asc"
   gpg --list-sigs --list-options show-notations "$PGP_FPR" | grep -i notation || true
   unset GNUPGHOME
 }
@@ -178,15 +221,20 @@ main() {
   check_offline
   ramdisk_up
   case "$cmd" in
-    init-root)     cmd_init_root ;;
-    issue-docsign) cmd_issue_docsign ;;
-    crl)           cmd_crl ;;
-    revoke)        cmd_revoke "$@" ;;
-    notation)      cmd_notation ;;
-    ceremony)      cmd_init_root; cmd_issue_docsign; cmd_crl; cmd_notation
-                   cp docs/doomsday/pgp-keys-RESTORE.md "$DOOMSDAY/pgp-keys/RESTORE.md" ;;
-    *) sed -n '2,10p' "$0"; exit 1 ;;
+    issue-docsign)    cmd_issue_docsign ;;
+    crl)              cmd_crl ;;
+    revoke)           cmd_revoke "$@" ;;
+    new-intermediate) cmd_new_intermediate "$@" ;;
+    notation)         cmd_notation ;;
+    ceremony)
+      cmd_init_root
+      cmd_new_intermediate personal "Benjamin Soyka Personal CA"
+      cmd_issue_docsign
+      cmd_crl
+      cmd_notation
+      cp docs/doomsday/pgp-keys-RESTORE.md "$DOOMSDAY/pgp-keys/RESTORE.md" ;;
+    *) sed -n '2,13p' "$0"; exit 1 ;;
   esac
-  say "Done. Turn Wi-Fi back on, then: make build sign deploy"
+  say "Done. Turn Wi-Fi back on, then: make sign deploy"
 }
 main "$@"

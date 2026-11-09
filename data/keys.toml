@@ -46,17 +46,31 @@ use = "Revoked 2025-07-19. Listed for completeness."
 
 # ---------------------------------------------------------------- X.509
 
-[pki]
-root = "pki/root.crt"
+[[x509]]
+file = "pki/root.crt"
 crl = "pki/root.crl"
-root_use = """
-My own certificate authority. It only issues certificates for me, can't
-create other authorities, and its key is kept offline. Trust it once and
-every document I sign will show as valid, including after I renew my
-signing certificate."""
+role = "root"
+status = "current"
+title = "My root certificate authority"
+use = """
+The one certificate to trust. It only certifies my own certificate
+authorities, its key is kept offline, and nothing below it can create further
+authorities. Trust it once and every document I sign will show as valid,
+including after I renew my signing certificate."""
+
+[[x509]]
+file = "pki/personal-ca.crt"
+crl = "pki/personal-ca.crl"
+role = "ca"
+status = "current"
+title = "My personal certificate authority"
+use = """
+Sits under the root and issues the certificates I personally sign with. Its
+key is also kept offline. You don't need to trust it separately."""
 
 [[x509]]
 file = "pki/certs/docsign-current.crt"
+role = "signing"
 status = "current"
 title = "Document signing certificate"
 use = """

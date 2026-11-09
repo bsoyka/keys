@@ -1,4 +1,4 @@
-/* Matches bensoyka.com: IBM Plex Sans, light #f4f9f9 background, white bento
+/* Matches bensoyka.com: IBM Plex Sans (JetBrains Mono for code), light #f4f9f9 background, white bento
    cards with a teal underline on headings, #507dbc links with a grow-in
    underline. Light only, like the main site. */
 
@@ -25,7 +25,7 @@ body {
   color: var(--dark);
   font: 16px/1.5 "IBM Plex Sans", sans-serif;
 }
-code, pre, textarea { font-family: "IBM Plex Mono", ui-monospace, monospace; }
+code, pre, textarea { font-family: "JetBrains Mono", ui-monospace, monospace; }
 
 .grid {
   max-width: 64rem;

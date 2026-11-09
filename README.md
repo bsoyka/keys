@@ -8,8 +8,10 @@ PGP primary BC48…8D89 (offline)        ← root of trust
 ├─ clearsigns keys.txt                   (the manifest: every key, its status, how to verify)
 ├─ UID notation x509-root-sha256@bensoyka.com
 └─ subkeys S/E/A on YubiKey (touch)
-Personal root CA (P-384, offline, pathlen:0)
-└─ document-signing cert in YubiKey PIV 9c (RSA-3072, on-device key, attested)
+Root CA (P-384, offline, pathlen:1)    ← what people trust in Acrobat
+└─ Personal CA (P-384, offline, pathlen:0)
+   └─ document-signing cert in YubiKey PIV 9c (RSA-3072, on-device key, attested)
+   (room for more CAs under the root later; none exist yet)
 ```
 
 Only secrets live outside this repo, in `~/doomsday/` (see [docs/restore.md](docs/restore.md)).

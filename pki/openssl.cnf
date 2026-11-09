@@ -1,31 +1,57 @@
-# OpenSSL config for the personal root CA. Used by scripts/ceremony.sh and
-# scripts/renew-crl.sh; run those from the repo root (they set KEYS_REPO and
-# ROOT_KEY). The CA database (index.txt etc.) is public and lives in pki/ca/.
+# OpenSSL config for my CA hierarchy. Used by scripts/ca.sh; run from the repo
+# root (it sets KEYS_REPO and CA_KEY).
+#
+#   Root CA (P-384, 20 yr, pathlen:1)          signs only intermediate CAs
+#   └─ Personal CA (P-384, 10 yr, pathlen:0)   signs only my own certs
+#      └─ document-signing cert (YubiKey 9c)
 #
 # Key decisions:
-# - Root is P-384, pathlen:0: it can sign end-entity certs only, never sub-CAs.
-# - Leaf certs get Digital Signature + Non-Repudiation only (no encipherment),
-#   and the three EKUs Acrobat/Office recognise for document signing.
-# - CRL/AIA URLs are plain http on purpose (standard practice: validators may
-#   not follow https for revocation data). These URLs are baked into every
-#   issued cert, so they must keep working for the life of those certs.
-# - Random serials (rand_serial), so no serial file to keep in sync.
+# - Two levels so the root can later get a second intermediate (e.g. for
+#   friends) without changing anything people already trust. The root's key is
+#   then needed only to issue/revoke intermediates and re-sign its own CRL.
+# - pathlen:1 on the root, pathlen:0 on intermediates: no deeper chains, ever.
+# - Each CA has its own database under pki/ca/<name>/ and its own CRL.
+# - Leaf certs get Digital Signature + Non-Repudiation only, plus the three
+#   EKUs Acrobat/Office recognise for document signing.
+# - CRL/AIA URLs are plain http on purpose (validators may not follow https
+#   for revocation data). They're baked into every issued cert, so they must
+#   keep working for the life of those certs.
+# - Random serials (rand_serial), so there's no serial file to keep in sync.
 
 KEYS_REPO = .
-ROOT_KEY  = /nonexistent
+CA_KEY    = /nonexistent
+BASE_URL  = http://keys.bensoyka.com/pki
 
 [ ca ]
 default_ca = root_ca
 
+# ------------------------------------------------------------------ CAs
+
 [ root_ca ]
-dir               = $ENV::KEYS_REPO/pki/ca
+dir               = $ENV::KEYS_REPO/pki/ca/root
+certificate       = $dir/cert.pem
+private_key       = $ENV::CA_KEY
 database          = $dir/index.txt
 new_certs_dir     = $dir/newcerts
 crlnumber         = $dir/crlnumber
 rand_serial       = yes
-# PEM copy for openssl; public/pki/root.crt is the same cert in DER (what the AIA URL serves)
-certificate       = $ENV::KEYS_REPO/pki/ca/root.pem
-private_key       = $ENV::ROOT_KEY
+default_md        = sha384
+default_days      = 3653
+default_crl_days  = 400
+policy            = policy_ca
+copy_extensions   = none
+unique_subject    = no
+preserve          = yes
+crl_extensions    = crl_ext
+
+[ personal_ca ]
+dir               = $ENV::KEYS_REPO/pki/ca/personal
+certificate       = $dir/cert.pem
+private_key       = $ENV::CA_KEY
+database          = $dir/index.txt
+new_certs_dir     = $dir/newcerts
+crlnumber         = $dir/crlnumber
+rand_serial       = yes
 default_md        = sha384
 default_days      = 1826
 default_crl_days  = 400
@@ -36,13 +62,18 @@ email_in_dn       = yes
 preserve          = yes
 crl_extensions    = crl_ext
 
+[ policy_ca ]
+commonName        = supplied
+organizationName  = optional
+countryName       = optional
+
 [ policy_any ]
 commonName        = supplied
 emailAddress      = optional
 organizationName  = optional
 countryName       = optional
 
-# ---- root self-signed cert (openssl req -x509) ----
+# ------------------------------------------------------------------ root (openssl req -x509)
 
 [ req ]
 prompt             = no
@@ -51,16 +82,26 @@ x509_extensions    = v3_root
 string_mask        = utf8only
 
 [ root_dn ]
-CN = Benjamin Soyka Personal Root CA
+CN = Benjamin Soyka Root CA
 O  = Benjamin Soyka
 C  = US
 
 [ v3_root ]
-basicConstraints     = critical, CA:TRUE, pathlen:0
+basicConstraints     = critical, CA:TRUE, pathlen:1
 keyUsage             = critical, keyCertSign, cRLSign
 subjectKeyIdentifier = hash
 
-# ---- document-signing cert for YubiKey PIV slot 9c ----
+# ------------------------------------------------------------------ intermediates (signed by root)
+
+[ v3_intermediate ]
+basicConstraints       = critical, CA:TRUE, pathlen:0
+keyUsage               = critical, keyCertSign, cRLSign
+subjectKeyIdentifier   = hash
+authorityKeyIdentifier = keyid:always
+crlDistributionPoints  = URI:$BASE_URL/root.crl
+authorityInfoAccess    = caIssuers;URI:$BASE_URL/root.crt
+
+# ------------------------------------------------------------------ my document-signing cert (signed by personal CA)
 
 [ v3_docsign ]
 basicConstraints       = critical, CA:FALSE
@@ -70,8 +111,8 @@ extendedKeyUsage       = emailProtection, 1.2.840.113583.1.1.5, 1.3.6.1.4.1.311.
 subjectAltName         = email:ben@bensoyka.com
 subjectKeyIdentifier   = hash
 authorityKeyIdentifier = keyid:always
-crlDistributionPoints  = URI:http://keys.bensoyka.com/pki/root.crl
-authorityInfoAccess    = caIssuers;URI:http://keys.bensoyka.com/pki/root.crt
+crlDistributionPoints  = URI:$BASE_URL/personal-ca.crl
+authorityInfoAccess    = caIssuers;URI:$BASE_URL/personal-ca.crt
 
 [ crl_ext ]
 authorityKeyIdentifier = keyid:always

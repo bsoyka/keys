@@ -7,7 +7,8 @@ repo. Each doomsday folder has a short RESTORE.md listing its files.
 |---|---|---|
 | PGP primary + subkeys | `doomsday/pgp-keys/current-83D68D89/secret-master-….asc` | passphrase (memorized) |
 | PGP revocation cert | same folder, plus an off-site copy | nothing needed |
-| Root CA key | `doomsday/pki/root-ca.key.asc` | YubiKey, or the PGP master backup |
+| Root CA key | `doomsday/pki/root.key.asc` | YubiKey, or the PGP master backup |
+| Personal CA key | `doomsday/pki/personal-ca.key.asc` | YubiKey, or the PGP master backup |
 | PIV 9c signing key | YubiKey only (not exportable, by design) | PIN + touch |
 
 Tools (macOS): `brew install gnupg pinentry-mac ykman openssl@3`
@@ -58,7 +59,7 @@ For PDF signing in Acrobat, see [acrobat.md](acrobat.md).
 
 **PIV 9c signing cert**: the key died with the YubiKey (it can't be backed up, on purpose).
 
-1. `scripts/ca.sh revoke <old serial>` if the YubiKey was lost (not just broken).
+1. `scripts/ca.sh revoke personal <old serial>` if the YubiKey was lost (not just broken).
 2. `scripts/ca.sh issue-docsign` with the new YubiKey.
 3. Update `data/keys.toml` (move the old cert to retired/compromised), `make sign deploy`.
 
@@ -99,18 +100,30 @@ gpg --import public/pgp.asc
 gpg --import ~/doomsday/pgp-keys/current-83D68D89/secret-revoke-BC4876BDC8AB5AB8C9CB81659497E30583D68D89.asc
 ```
 
-Publish (**E**). Revoking is permanent. Then make a new key, re-encrypt the root CA
-key to it (`gpg -d` with the old key first, before revoking, if you still can),
+Publish (**E**). Revoking is permanent. Then make a new key, re-encrypt both CA
+keys to it (`gpg -d` with the old key first, before revoking, if you still can),
 update `PGP_FPR` in `scripts/ca.sh` and the Makefile, and re-sign `keys.txt`.
 
-## G. Root CA key compromised or lost
+## G. Personal CA key compromised or lost
+
+This is what the two-level setup is for: the root stays trusted.
+
+1. `scripts/ca.sh revoke root <personal CA serial>` (serial from `pki/ca/root/index.txt`).
+   The root's revocation list now says the personal CA is dead, and validators that
+   check it will reject everything it issued.
+2. Move `pki/ca/personal/` aside, then `scripts/ca.sh new-intermediate personal "Benjamin Soyka Personal CA"`
+   and `scripts/ca.sh issue-docsign`.
+3. Mark the old personal CA and its certs compromised (or retired, if the key was
+   only lost) in `data/keys.toml`; `make sign deploy`. Nobody needs to re-trust anything.
+
+## H. Root CA key compromised or lost
 
 A self-signed root can't be revoked in a way validators will notice, so:
 
-1. Move the root and every cert it issued to *compromised* in `data/keys.toml`;
+1. Move the root and everything under it to *compromised* in `data/keys.toml`;
    `make sign deploy`. The signed manifest is the revocation notice.
 2. If the key was *lost* but not exposed, existing signatures stay trustworthy;
    say that instead and mark them *retired*.
-3. Delete `pki/ca/` contents and `public/pki/root.*`, run `scripts/ca.sh init-root`,
-   then `issue-docsign`, `crl` and `notation` (the UID notation must change).
+3. Move `pki/ca/` aside, then run `scripts/ca.sh ceremony` again (it also redoes
+   the UID notation, which must change).
 4. Tell anyone who trusted the old root.

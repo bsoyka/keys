@@ -258,6 +258,8 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
         a(f"  SHA-256:     {c.sha256}")
         a(f"  SHA-1:       {c.sha1}   (what Acrobat shows)")
         a(f"  Download:    {site}/{c.meta['file']}")
+        if c.meta.get("crl"):
+            a(f"  Revocation:  {site}/{c.meta['crl']}")
         for k in ("attestation", "attestation_intermediate"):
             if c.meta.get(k) and (PUBLIC / c.meta[k]).exists():
                 a(f"  {'Attestation:' if k == 'attestation' else '  via f9:'}  {site}/{c.meta[k]}")
@@ -275,14 +277,9 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
     a(f"  {ssh}")
     a(f"  Download:    {site}/ssh.txt")
     a("")
-    root_meta = {"file": cfg["pki"]["root"], "title": "Personal root CA", "use": cfg["pki"]["root_use"]}
-    cert_block(root, "X.509 ROOT")
-    if root.present:
-        a(f"  Revocation list: {site}/{cfg['pki']['crl']}")
-        a("")
     for c in certs:
         if c.meta["status"] == "current":
-            cert_block(c, "X.509")
+            cert_block(c, {"root": "X.509 ROOT", "ca": "X.509 CA"}.get(c.meta.get("role"), "X.509"))
 
     a("=" * 70)
     a("RETIRED OR REVOKED (history only; don't encrypt to or newly trust)")
@@ -340,8 +337,7 @@ def keys_json(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -
                  "uids": [u for u, _ in k.uids],
                  "subkeys": [{"fpr": s.fpr, "caps": s.caps, "expires": s.expires} for s in k.subkeys]}
                 for k in pgp],
-        "x509": [c for c in [cert(root, "current", "My certificate authority (root)")]
-                 + [cert(c, c.meta["status"], c.meta["title"]) for c in certs] if c],
+        "x509": [x for x in (cert(c, c.meta["status"], c.meta["title"]) for c in certs) if x],
         "ssh": {"line": ssh, "blob": ssh.split()[1], "fingerprint": ssh_fingerprint(ssh)},
     }
 
@@ -356,7 +352,6 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
     o = cfg["owner"]
     primary = next(k for k in pgp if k.meta.get("alias"))
     wiki = next((k for k in pgp if k is not primary and k.meta["status"] == "current"), None)
-    docsign = next((c for c in certs if c.meta["status"] == "current"), None)
 
     def fp(s: str) -> str:
         return f'<code class="fp">{e(s)}</code>'
@@ -383,26 +378,24 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
     def cert_item(c: Cert, title: str, use: str, status: str, extra: list[str] = ()) -> str:
         if not c.present:
             return item(title, status, use, [row("Status", "Not issued yet")])
+        links = [f'<a href="/{c.meta["file"]}">{e(c.meta["file"].split("/")[-1])}</a>']
+        if c.meta.get("crl"):
+            links.append(f'<a href="/{c.meta["crl"]}">revocation list</a>')
+        for k, label in (("attestation", "attestation"), ("attestation_intermediate", "attestation chain")):
+            if c.meta.get(k) and (PUBLIC / c.meta[k]).exists():
+                links.append(f'<a href="/{c.meta[k]}">{label}</a>')
         rows = [row("SHA-256", fp(c.sha256)), row("SHA-1", fp(c.sha1)),
                 row("Valid", f"{c.not_before} to {c.not_after}"),
-                row("Download", f'<a href="/{c.meta["file"]}">{e(c.meta["file"].split("/")[-1])}</a>' + "".join(extra))]
+                row("Download", " · ".join(links + list(extra)))]
         return item(title, status, use, rows)
 
     def item(title: str, status: str, use: str, rows: list[str]) -> str:
         return (f'<article class="key"><h3>{e(title)} {pill(status)}</h3>'
                 f'<p>{e(" ".join(use.split()))}</p><dl>{"".join(rows)}</dl></article>')
 
-    attest = []
-    if docsign:
-        for k, label in (("attestation", "attestation"), ("attestation_intermediate", "attestation chain")):
-            if docsign.meta.get(k) and (PUBLIC / docsign.meta[k]).exists():
-                attest.append(f' · <a href="/{docsign.meta[k]}">{label}</a>')
-
     current = [pgp_item(primary)]
-    current.append(cert_item(root, "My certificate authority", cfg["pki"]["root_use"], "current",
-                             [f' · <a href="/{cfg["pki"]["crl"]}">revocation list</a>'] if root.present else []))
-    if docsign:
-        current.append(cert_item(docsign, docsign.meta["title"], docsign.meta["use"], "current", attest))
+    current += [cert_item(c, c.meta["title"], c.meta["use"], "current") for c in certs
+                if c.meta["status"] == "current"]
     current.append(item("SSH key", "current", "The authentication part of my main PGP key.",
                         [row("Key", f'<code class="fp">{e(ssh)}</code>'),
                          row("Fingerprint", fp(ssh_fingerprint(ssh))),
@@ -425,7 +418,7 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
 <meta name="description" content="Check that a signature, key or document really came from {e(o['name'])}.">
 <link rel="canonical" href="{e(o['site'])}/">
 <link rel="preconnect" href="https://fonts.bunny.net">
-<link rel="stylesheet" href="https://fonts.bunny.net/css?family=ibm-plex-sans:400,500,600,700|ibm-plex-mono:400">
+<link rel="stylesheet" href="https://fonts.bunny.net/css?family=ibm-plex-sans:400,500,600,700|jetbrains-mono:400">
 <link rel="stylesheet" href="/style.css">
 <script type="module" src="/verify.js"></script>
 </head>
@@ -444,7 +437,7 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
   <h2>Downloads</h2>
   <ul class="links">
     <li><a href="/pgp.asc">PGP key</a> <span>for email and files</span></li>
-    <li><a href="/{e(cfg['pki']['root'])}">Root certificate</a> <span>for PDFs</span></li>
+    <li><a href="/{e(root.meta['file'])}">Root certificate</a> <span>for PDFs</span></li>
     <li><a href="/ssh.txt">SSH key</a> <span>for servers</span></li>
     <li><a href="/keys.txt">keys.txt</a> <span>signed list of everything</span></li>
   </ul>
@@ -552,8 +545,8 @@ def main() -> None:
         ssh = ssh_line(primary.meta["ssh_subkey"], gh)
     shutil.copyfile(PUBLIC / primary.meta["file"], PUBLIC / primary.meta["alias"])
     (PUBLIC / "ssh.txt").write_text(ssh + "\n")
-    root = load_cert({"file": cfg["pki"]["root"], "title": "Personal root CA", "use": cfg["pki"]["root_use"]})
     certs = [load_cert(m) for m in cfg["x509"]]
+    root = next(c for c in certs if c.meta.get("role") == "root")
     (BUILD / "keys.txt").write_text(manifest(cfg, pgp, root, certs, ssh))
     (PUBLIC / "index.html").write_text(page(cfg, pgp, root, certs, ssh))
     import json

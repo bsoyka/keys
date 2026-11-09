@@ -12,7 +12,8 @@ Sheets:
   4. Proton access (blank lines, filled in by hand; never printed with values)
   5. My copy (A-2) of the split-key letter, if the private bsoyka/sirloin repo is
      at $SIRLOIN_DIR (default ~/personal/sirloin). With a third argument
-     "letters", all four copies also go to letters.html for reprinting.
+     "letters", letters.html also gets the friends' letters, their outer envelope
+     notes, and their key cards with labels for the small sealed inner envelopes.
 
 The letter template lives in bsoyka/sirloin, not here, because it has personal
 details (family phone numbers, friends' names) and this repo is public.
@@ -169,32 +170,58 @@ my encrypted backups, but not decrypt them without one of the age keys.</p>
 <p class="fine">Files: doomsday.tar.gz.age and vault.tar.gz.age in Proton Drive's root.
 Decrypt: <code>age -d -i KEY doomsday.tar.gz.age | tar xz</code></p>"""), None))
 
-    # 5. Split-key letters (template and copies from the private sirloin repo)
+    # 5. Split-key letters (templates and copies from the private sirloin repo).
+    # My copy keeps its half in a handwritten box on the letter (it lives in the
+    # fireproof folder with this set). Friends' letters can be read any time; their
+    # half goes on a card in a small sealed envelope inside, so a disturbed seal
+    # shows if it was looked at.
     letters: list[str] = []
     sirloin = Path(os.environ.get("SIRLOIN_DIR", Path.home() / "personal" / "sirloin")) / "letter"
     if (sirloin / "letter.html").exists():
-        strip = lambda t: t[t.index("-->") + 3:] if t.lstrip().startswith("<!--") else t  # noqa: E731
-        tpl = strip((sirloin / "letter.html").read_text())
-        env = strip((sirloin / "envelope.html").read_text()) if (sirloin / "envelope.html").exists() else None
+        today = str(datetime.date.today())
+
+        def tpl(name: str) -> str | None:
+            f = sirloin / name
+            if not f.exists():
+                return None
+            t = f.read_text()
+            return t[t.index("-->") + 3:] if t.lstrip().startswith("<!--") else t
+
+        def fill(t: str, c: dict, **extra: str) -> str:
+            for k, v in {"COPY": c["id"], "HALF": c["half"], "UPDATED": today,
+                         "TO": e(c.get("to", c["holder"])), **extra}.items():
+                t = t.replace("{{" + k + "}}", v)
+            return t
+
+        letter, outer, inner = tpl("letter.html"), tpl("envelope.html"), tpl("inner.html")
         copies = tomllib.loads((sirloin / "copies.toml").read_text())["copy"]
-        col = lambda h: "".join(f"<li>{e(c['holder'])} ({c['id']})</li>" for c in copies if c["half"] == h)
+        friends = [c for c in copies if not c.get("mine")]
+        col = lambda h: "".join(f"<li>{e(c['holder'])} ({c['id']})</li>" for c in copies if c["half"] == h)  # noqa: E731
         table = (f'<table class="halves"><tr><th>Has the first half</th><th>Has the second half</th></tr>'
                  f'<tr><td><ul>{col("first")}</ul></td><td><ul>{col("second")}</ul></td></tr></table>')
         for c in copies:
-            body = (tpl.replace("{{COPY}}", c["id"]).replace("{{HALF}}", c["half"])
-                    .replace("{{TABLE}}", table).replace("{{UPDATED}}", str(datetime.date.today())))
-            letters.append(f'<article class="sheet letter">{body}</article>')
+            keypart = (f'<div class="keybox"><span>{c["half"]} half, written by hand</span></div>' if c.get("mine")
+                       else f'<p class="keyptr">Your half is on a card in the <b>small sealed envelope</b> inside, '
+                            f'labeled {c["id"]}. Keep it sealed until it\'s needed.</p>')
+            body = fill(letter, c, TABLE=table, KEYPART=keypart)
             if c.get("mine"):
                 sheets.append((f"Split-key letter, my copy ({c['id']})", sheet(
                     f"Split-key letter ({c['id']})",
-                    "one copy, fireproof folder (apartment) only: this replaces the separate "
-                    f"{c['id']} envelope. Write the {c['half']} half in by hand, then cover it. "
-                    "<b>Not in the El Paso set.</b>",
+                    f"one copy, fireproof folder (apartment) only. Write the {c['half']} half in by hand, "
+                    "then cover it. <b>Not in the El Paso set.</b>",
                     f'<div class="letter">{body}</div>'), None))
-        if env:  # one page of cut-out envelope notes, one per copy
-            notes = "".join(f'<div class="env">{env.replace("{{TO}}", e(c.get("to", c["holder"]))).replace("{{COPY}}", c["id"]).replace("{{UPDATED}}", str(datetime.date.today()))}</div>'
-                            for c in copies if not c.get("mine"))  # mine lives in the paper set, no envelope
-            letters.append(f'<article class="sheet envelopes">{notes}</article>')
+            else:
+                letters.append(f'<article class="sheet letter">{body}</article>')
+        if outer:  # outer envelope notes, three to a page
+            letters.append('<article class="sheet envelopes">'
+                           + "".join(f'<div class="env">{fill(outer, c)}</div>' for c in friends) + "</article>")
+        if inner:  # per friend: the key card, and the label for the small envelope it goes in
+            rows = "".join(
+                f'<div class="inner-row"><div class="slip"><p class="env-to">Copy {c["id"]} <span>{c["half"]} half · {today}</span></p>'
+                f'<div class="keybox"><span>{c["half"]} half, written by hand</span></div>'
+                f'<p class="fine">Join with the other half as the letter explains. Useless on its own.</p></div>'
+                f'<div class="label">{fill(inner, c)}</div></div>' for c in friends)
+            letters.append(f'<article class="sheet inners">{rows}</article>')
     else:
         print(f"note: no letter template at {sirloin}; skipping the split-key letter", file=sys.stderr)
 
@@ -261,7 +288,10 @@ table.halves ul {{ margin: 0; padding-left: 14pt; }}
 .env p {{ margin: 3pt 0; }}
 .env-to {{ font-size: 13pt; font-weight: 700; display: flex; justify-content: space-between; }}
 .env-to span {{ font-size: 8pt; font-weight: 400; }}
-.env-big {{ font-weight: 600; }}
+.keyptr {{ border-left: 3px solid #000; padding-left: 6pt; }}
+.inner-row {{ display: flex; gap: 0.15in; margin-bottom: 0.15in; }}
+.slip, .label {{ border: 1px dashed #000; width: 3.5in; height: 2.9in; padding: 8pt 10pt; box-sizing: border-box; font-size: 8.5pt; line-height: 1.3; }}
+.slip .keybox {{ height: 1.3in; }} .label p, .slip p {{ margin: 3pt 0; }}
 @media screen {{ body {{ max-width: 7.4in; margin: 20px auto; }} .sheet {{ border-bottom: 3px dashed #999; padding-bottom: 20px; margin-bottom: 20px; }} }}
 </style></head><body>
 <!--BODY-->

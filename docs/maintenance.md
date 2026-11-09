@@ -5,11 +5,12 @@
 | Every October | Re-sign both revocation lists (root and personal CA; each is valid ~400 days, so a year plus slack) | Wi-Fi off, `scripts/ca.sh crl`, Wi-Fi on, `make sign deploy` |
 | Every October | Renew `security.txt` on bensoyka.com (expires each Nov 1; RFC 9116 wants under a year) | bump `Expires` in bsoyka/website's `security.txt.in`, re-sign, deploy |
 | Before 2029-08-20 | Extend PGP subkeys | [restore.md § D](restore.md#d-extend-pgp-subkey-expiry-before-2029-08-20) |
-| Before late 2031 | Renew the 9c document-signing cert | `scripts/ca.sh issue-docsign` (new key on the YubiKey), retire the old one in `keys.toml` |
-| Before late 2036 | Renew the personal CA (10-year cert) | `scripts/ca.sh new-intermediate personal …` after moving the old one aside; reissue 9c |
+| Before late 2031 | Renew both 9c document-signing certs | `scripts/ca.sh issue-docsign primary`, then `… backup`; retire the old ones in `keys.toml` |
+| Before late 2036 | Renew the personal CA (10-year cert) | `scripts/ca.sh new-intermediate personal …` after moving the old one aside; reissue both 9c certs |
 | Any key change | Re-sign and redeploy the manifest | `make sign deploy` |
 
-`make check` fails if `public/keys.txt` is unsigned or no longer matches what
+`make check-expiry` lists every date above (and fails if one is within 60 days);
+a monthly scheduled task runs it and pings me. `make check` fails if `public/keys.txt` is unsigned or no longer matches what
 `scripts/build.py` generates, so a stale manifest can't be deployed.
 
 ## Adding or retiring a key or cert
@@ -25,8 +26,9 @@
 
 1. Hosting: [terraform/README.md](../terraform/README.md) (two phases, with the
    DNS records added in bsoyka/infra in between).
-2. The ceremony: Wi-Fi off, YubiKey in, `scripts/ca.sh ceremony`. Creates the root
-   and the personal CA under it, issues the 9c cert with attestation, signs both
+2. The ceremony: Wi-Fi off, both YubiKeys at hand, `scripts/ca.sh ceremony`. Creates
+   the root and the personal CA under it, issues a 9c cert with attestation on each
+   YubiKey (it asks for one at a time), signs both
    revocation lists, adds the root fingerprint to the PGP UID, and installs the
    short RESTORE.md files in `~/doomsday/`.
 3. Wi-Fi on. `make sign deploy`, then publish the PGP key (restore.md § E) since the

@@ -2,7 +2,8 @@
 # sign   -> clearsign build/keys.txt into public/keys.txt (YubiKey PIN + touch)
 # check  -> fail if public/keys.txt isn't a valid signature over the current build
 # deploy -> upload public/ to S3 and invalidate CloudFront
-.PHONY: build sign check deploy
+# check-expiry -> list everything with an expiry date; fails if any is within 60 days
+.PHONY: build sign check deploy check-expiry
 
 build:
 	python3 scripts/build.py
@@ -21,3 +22,6 @@ check: build
 
 deploy: check
 	scripts/deploy.sh
+
+check-expiry:
+	python3 scripts/check-expiry.py

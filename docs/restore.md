@@ -60,8 +60,9 @@ For PDF signing in Acrobat, see [acrobat.md](acrobat.md).
 **PIV 9c signing cert**: the key died with the YubiKey (it can't be backed up, on purpose).
 
 1. `scripts/ca.sh revoke personal <old serial>` if the YubiKey was lost (not just broken).
-2. `scripts/ca.sh issue-docsign` with the new YubiKey.
-3. Update `data/keys.toml` (move the old cert to retired/compromised), `make sign deploy`.
+2. Sign with the backup YubiKey in the meantime; it has its own certificate.
+3. `scripts/ca.sh issue-docsign primary` (or `backup`) with the replacement YubiKey.
+4. Update `data/keys.toml` (move the old cert to retired/compromised), `make sign deploy`.
 
 Anyone who trusts the root keeps trusting the new cert; nothing to redistribute.
 

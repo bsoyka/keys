@@ -2,12 +2,14 @@
 # CA operations. macOS, run from the repo root with Wi-Fi off.
 #
 #   scripts/ca.sh ceremony            first-time setup: root, personal CA, 9c cert, CRLs, notation
-#   scripts/ca.sh issue-docsign       new on-device key in YubiKey PIV slot 9c + cert from the personal CA
+#   scripts/ca.sh issue-docsign LABEL new on-device key in PIV slot 9c + cert from the personal CA,
+#                                     for one YubiKey: LABEL is primary (USB-C) or backup (USB-A)
 #   scripts/ca.sh crl                 re-sign every CA's revocation list (yearly)
 #   scripts/ca.sh revoke CA SERIAL    revoke a cert issued by CA (root|personal), then re-sign CRLs
 #   scripts/ca.sh new-intermediate NAME "Common Name"
 #                                     another CA under the root (needs a [NAME_ca] section in pki/openssl.cnf)
-#   scripts/ca.sh notation            put the root fingerprint on the PGP UID (needs the PGP master key)
+#   scripts/ca.sh notation            add the root fingerprint and data/notations.txt (Keyoxide proofs)
+#                                     to the PGP key (needs the PGP master key); safe to re-run
 #
 # Hierarchy: Root CA (offline, signs only intermediates)
 #            └─ Personal CA (offline, signs only my certs) └─ 9c document-signing cert
@@ -135,18 +137,27 @@ cmd_new_intermediate() {
 }
 
 cmd_issue_docsign() {
-  local key; key="$(ca_key personal)"
-  say "Generating an RSA-3072 key ON the YubiKey in slot 9c (replaces what's there)"
-  echo "This destroys the current 9c key. Signatures already made with it stay valid."
-  pause "Plug in the YubiKey."
-  ykman piv keys generate --algorithm RSA3072 --pin-policy ALWAYS --touch-policy ALWAYS \
+  local label="${1:?primary or backup}" key serial_no fw alg
+  key="$(ca_key personal)"
+  say "Issuing a document-signing cert for the $label YubiKey"
+  echo "This replaces that YubiKey's slot 9c key. Signatures already made with it stay valid."
+  pause "Plug in ONLY the $label YubiKey."
+  [[ $(ykman list --serials | wc -l) -eq 1 ]] || { echo "exactly one YubiKey must be plugged in" >&2; exit 1; }
+  serial_no=$(ykman list --serials)
+  # RSA-3072 needs firmware 5.7+; older keys get RSA-2048 (still fine for Acrobat).
+  fw=$(ykman info | awk -F': ' '/Firmware version/ {print $2}')
+  local major minor; IFS=. read -r major minor _ <<< "$fw"
+  if (( major > 5 || (major == 5 && minor >= 7) )); then alg=RSA3072; else alg=RSA2048; fi
+  echo "YubiKey $serial_no, firmware $fw: using $alg"
+  local Y=(ykman --device "$serial_no")
+  "${Y[@]}" piv keys generate --algorithm "$alg" --pin-policy ALWAYS --touch-policy ALWAYS \
     9c "$RAM/9c.pub"
   say "Creating a signing request with the new key (PIN + touch)"
-  ykman piv certificates request 9c "$RAM/9c.pub" "$RAM/9c.csr" -s "CN=Benjamin Soyka"
+  "${Y[@]}" piv certificates request 9c "$RAM/9c.pub" "$RAM/9c.csr" -s "CN=Benjamin Soyka"
 
   say "Exporting attestation"
-  ykman piv keys attest 9c "$RAM/attest.pem"
-  ykman piv certificates export f9 "$RAM/f9.pem"
+  "${Y[@]}" piv keys attest 9c "$RAM/attest.pem"
+  "${Y[@]}" piv certificates export f9 "$RAM/f9.pem"
   local a b
   a=$("$OPENSSL" x509 -in "$RAM/attest.pem" -noout -pubkey | "$OPENSSL" sha256)
   b=$("$OPENSSL" pkey -pubin -in "$RAM/9c.pub" | "$OPENSSL" sha256)
@@ -161,14 +172,14 @@ cmd_issue_docsign() {
   serial=$("$OPENSSL" x509 -in "$RAM/leaf.pem" -noout -serial | cut -d= -f2)
   mkdir -p public/pki/certs public/pki/attestation
   cp "$RAM/leaf.pem"   "public/pki/certs/$serial.crt"
-  cp "$RAM/leaf.pem"   public/pki/certs/docsign-current.crt
+  cp "$RAM/leaf.pem"   "public/pki/certs/docsign-$label.crt"
   cp "$RAM/attest.pem" "public/pki/attestation/$serial-attest.crt"
   cp "$RAM/f9.pem"     "public/pki/attestation/$serial-f9.crt"
-  cp "$RAM/attest.pem" public/pki/attestation/docsign-current-attest.crt
-  cp "$RAM/f9.pem"     public/pki/attestation/docsign-current-f9.crt
+  cp "$RAM/attest.pem" "public/pki/attestation/docsign-$label-attest.crt"
+  cp "$RAM/f9.pem"     "public/pki/attestation/docsign-$label-f9.crt"
 
   say "Importing the certificate into slot 9c"
-  ykman piv certificates import 9c "$RAM/leaf.pem"
+  "${Y[@]}" piv certificates import 9c "$RAM/leaf.pem"
   "$OPENSSL" x509 -in "$RAM/leaf.pem" -noout -subject -issuer -enddate -ext keyUsage,extendedKeyUsage
   echo "Issued serial $serial."
 }
@@ -193,26 +204,36 @@ cmd_revoke() {
 }
 
 cmd_notation() {
-  local sha
-  sha=$("$OPENSSL" x509 -in pki/ca/root/cert.pem -noout -fingerprint -sha256 | cut -d= -f2 | tr -d : | tr A-F a-f)
-  say "Adding the root CA fingerprint to the PGP UID (needs the master key backup)"
+  # Root CA fingerprint plus everything in data/notations.txt, on the primary UID.
+  # Already-present notations are skipped, so this is safe to re-run (e.g. after
+  # adding a Keyoxide proof). Scripted through gpg's command interface; the
+  # passphrase still comes from pinentry.
+  local want=() have
+  if [[ -f pki/ca/root/cert.pem ]]; then
+    want+=("x509-root-sha256@bensoyka.com=$("$OPENSSL" x509 -in pki/ca/root/cert.pem -noout -fingerprint -sha256 | cut -d= -f2 | tr -d : | tr A-F a-f)")
+  fi
+  while IFS= read -r line; do
+    [[ -z "$line" || "$line" == \#* ]] || want+=("$line")
+  done < data/notations.txt
+
+  say "Updating notations on the PGP key (needs the master key backup)"
   export GNUPGHOME="$RAM/gnupg"; mkdir -m 700 "$GNUPGHOME"
   gpg --quiet --import "$DOOMSDAY/pgp-keys/current-83D68D89/secret-master-$PGP_FPR.asc"
   gpg --quiet --import "public/pgp/$PGP_FPR.asc"   # bring in any newer public sigs
-  cat <<EOF
+  have=$(gpg --list-options show-notations --list-sigs "$PGP_FPR" | sed -n 's/^ *Signature notation: //p')
 
-In the gpg prompt that opens, type exactly:
-  uid 1
-  notation
-  x509-root-sha256@bensoyka.com=$sha
-  save
-(You'll be asked for the master key passphrase.)
-EOF
-  pause "Ready?"
-  gpg --edit-key "$PGP_FPR"
+  local cmds="uid 1"$'\n' n added=0
+  for n in "${want[@]}"; do
+    grep -qxF "$n" <<< "$have" && continue
+    cmds+="notation"$'\n'"$n"$'\n'; added=$((added + 1)); echo "  + $n"
+  done
+  if (( added == 0 )); then echo "Nothing new to add."; unset GNUPGHOME; return; fi
+  printf '%ssave\n' "$cmds" | gpg --batch --command-fd 0 --edit-key "$PGP_FPR" >/dev/null
+
   gpg --armor --export "$PGP_FPR" > "public/pgp/$PGP_FPR.asc"
   cp "public/pgp/$PGP_FPR.asc" "$DOOMSDAY/pgp-keys/current-83D68D89/pub-$PGP_FPR.asc"
-  gpg --list-sigs --list-options show-notations "$PGP_FPR" | grep -i notation || true
+  gpg --list-options show-notations --list-sigs "$PGP_FPR" | grep 'Signature notation' | sort -u
+  echo "Publish the updated key: make sign deploy, then send it to keys.openpgp.org."
   unset GNUPGHOME
 }
 
@@ -221,7 +242,7 @@ main() {
   check_offline
   ramdisk_up
   case "$cmd" in
-    issue-docsign)    cmd_issue_docsign ;;
+    issue-docsign)    cmd_issue_docsign "$@" ;;
     crl)              cmd_crl ;;
     revoke)           cmd_revoke "$@" ;;
     new-intermediate) cmd_new_intermediate "$@" ;;
@@ -229,12 +250,11 @@ main() {
     ceremony)
       cmd_init_root
       cmd_new_intermediate personal "Benjamin Soyka Personal CA"
-      cmd_issue_docsign
+      cmd_issue_docsign primary
+      cmd_issue_docsign backup
       cmd_crl
       cmd_notation
-      cp docs/doomsday/pgp-keys-RESTORE.md "$DOOMSDAY/pgp-keys/RESTORE.md"
-      grep -q '^## Signing certificates' "$DOOMSDAY/README.md" 2>/dev/null ||
-        cat docs/doomsday/README-section.md >> "$DOOMSDAY/README.md" ;;
+      cp docs/doomsday/pgp-keys-RESTORE.md "$DOOMSDAY/pgp-keys/RESTORE.md" ;;
     *) sed -n '2,13p' "$0"; exit 1 ;;
   esac
   say "Done. Turn Wi-Fi back on, then: make sign deploy"

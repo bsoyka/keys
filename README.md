@@ -10,7 +10,8 @@ PGP primary BC48…8D89 (offline)        ← root of trust
 └─ subkeys S/E/A on YubiKey (touch)
 Root CA (P-384, offline, pathlen:1)    ← what people trust in Acrobat
 └─ Personal CA (P-384, offline, pathlen:0)
-   └─ document-signing cert in YubiKey PIV 9c (RSA-3072, on-device key, attested)
+   └─ document-signing certs in PIV 9c on each YubiKey, primary and backup
+      (on-device keys, attested; RSA-3072 where the firmware allows)
    (room for more CAs under the root later; none exist yet)
 ```
 
@@ -28,7 +29,7 @@ Keep a clone of this repo in backups so recovery doesn't depend on GitHub.
 | `scripts/ca.sh` | Root CA operations, on a RAM disk, offline. |
 | `scripts/deploy.sh` | S3 upload with correct content types + CloudFront invalidation. |
 | `terraform/` | S3, CloudFront, ACM (state in `bsoyka-tfstate`, like infra). See [terraform/README.md](terraform/README.md). |
-| `docs/` | [restore](docs/restore.md) · [maintenance](docs/maintenance.md) · [acrobat](docs/acrobat.md) |
+| `docs/` | [restore](docs/restore.md) · [maintenance](docs/maintenance.md) · [acrobat](docs/acrobat.md) · [keyoxide](docs/keyoxide.md) |
 
 ## Everyday
 
@@ -36,4 +37,5 @@ Keep a clone of this repo in backups so recovery doesn't depend on GitHub.
 make build    # regenerate after editing keys.toml or adding a file
 make sign     # clearsign keys.txt (YubiKey touch)
 make deploy   # refuses unless keys.txt is signed and current
+make check-expiry   # anything expiring within 60 days?
 ```

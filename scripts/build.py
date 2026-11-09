@@ -543,6 +543,8 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
   <a href="https://github.com/bsoyka.gpg">GitHub</a>, or me in person) and check:</p>
   <pre>curl -s {e(o['site'])}/keys.txt | gpg --verify</pre>
   <p>The signature should come from {fp(group4(primary.fpr))}.</p>
+  <p>My domains and accounts are linked to this key on
+  <a href="https://keyoxide.org/{e(primary.fpr)}">Keyoxide</a>, which checks each link independently.</p>
 </section>
 
 <section class="card legal">

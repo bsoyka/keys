@@ -1,0 +1,9 @@
+# Notations on the main PGP key's primary UID, added by `scripts/ca.sh notation`
+# (needs the master key). One per line; ones already on the key are skipped.
+# The root CA fingerprint notation is added automatically.
+#
+# Keyoxide identity proofs (https://keyoxide.org). Each needs its matching proof
+# on the other side; see docs/keyoxide.md.
+proof@ariadne.id=dns:bensoyka.com?type=TXT
+proof@ariadne.id=dns:bsoyka.me?type=TXT
+# proof@ariadne.id=https://gist.github.com/bsoyka/GIST_ID   (create the gist first)

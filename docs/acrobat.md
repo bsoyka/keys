@@ -20,6 +20,7 @@ Yubico's PKCS#11 module.
    also fetch it from the URL inside my cert, but embedding works offline.
 
 After a new 9c cert (`scripts/ca.sh issue-docsign`), refresh the token in step 3.
+The backup YubiKey shows up as its own digital ID the same way when it's plugged in.
 
 ## Trusting my root (anyone)
 

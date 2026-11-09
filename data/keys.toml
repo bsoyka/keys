@@ -79,17 +79,29 @@ Sits under the root and issues the certificates I personally sign with. Its
 key is also kept offline. You don't need to trust it separately."""
 
 [[x509]]
-file = "pki/certs/docsign-current.crt"
-private_key = "On a hardware security key only. It can't be copied off, so there is no backup; if the hardware is lost I issue a new certificate."
+file = "pki/certs/docsign-primary.crt"
 role = "signing"
 status = "current"
 title = "Document signing certificate"
+private_key = "On a hardware security key only. It can't be copied off, so there is no backup; if the hardware is lost I issue a new certificate."
 use = """
 What I sign PDFs with. Its private key was created on a hardware security
 key and can't be copied off it; the attestation file proves that, checkable
 against the hardware maker's own certificate authority."""
-attestation = "pki/attestation/docsign-current-attest.crt"
-attestation_intermediate = "pki/attestation/docsign-current-f9.crt"
+attestation = "pki/attestation/docsign-primary-attest.crt"
+attestation_intermediate = "pki/attestation/docsign-primary-f9.crt"
+
+[[x509]]
+file = "pki/certs/docsign-backup.crt"
+role = "signing"
+status = "current"
+title = "Document signing certificate (backup)"
+private_key = "On a second hardware security key, kept somewhere safe. Can't be copied off."
+use = """
+The same as above, on my backup hardware key, so I can still sign if the
+first one is lost. Signatures from either are equally mine."""
+attestation = "pki/attestation/docsign-backup-attest.crt"
+attestation_intermediate = "pki/attestation/docsign-backup-f9.crt"
 
 [[x509]]
 file = "pki/retired/2026-10-30-selfsigned-9c.crt"
@@ -116,4 +128,4 @@ title = "Keybase"
 private_key = "Keybase's own device keys, not part of this setup."
 use = """
 My old Keybase proof stays up so existing checks don't break, but Keybase
-isn't maintained anymore and this page replaces it."""
+isn't maintained anymore. My accounts are now linked to my key on Keyoxide."""

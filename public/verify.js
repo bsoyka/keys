@@ -55,6 +55,8 @@ function statusLine(status, revoked) {
   return `I've retired it${revoked ? ` (${revoked})` : ""}. Things it signed before then are still genuine; don't encrypt to it.`;
 }
 
+const pk = (x) => (x && x.private_key ? "Private key: " + x.private_key : "");
+
 // ------------------------------------------------------------------ output
 
 function show(level, title, ...lines) {
@@ -105,7 +107,7 @@ async function verifyPgp(message, signature) {
   } catch (err) {
     if (/revoked/i.test(err.message))
       return show("warn", "Made with a key I've retired",
-        mine(hit.k, hit.part), when, statusLine(hit.k.status, hit.k.revoked),
+        mine(hit.k, hit.part), when, statusLine(hit.k.status, hit.k.revoked), pk(hit.k),
         "Your copy of the key says it was revoked, so this can't be confirmed here.");
     return show("bad", "Signature doesn't match",
       "It claims to be from " + mine(hit.k, hit.part) + ", but the content was changed after signing or the signature isn't genuine.",
@@ -114,7 +116,7 @@ async function verifyPgp(message, signature) {
 
   const [level] = STATUS[hit.k.status];
   const title = { ok: "Valid signature from me", warn: "Valid signature from an older key of mine", bad: "Signed with a compromised key" }[level];
-  show(level, title, mine(hit.k, hit.part), when, statusLine(hit.k.status, hit.k.revoked));
+  show(level, title, mine(hit.k, hit.part), when, statusLine(hit.k.status, hit.k.revoked), pk(hit.k));
 }
 
 // ------------------------------------------------------------------ certificates
@@ -132,7 +134,7 @@ async function checkCert(der) {
     return show("bad", "Not one of my certificates",
       "It doesn't match any certificate I've published. A certificate with my name on it isn't necessarily mine.");
   const [level, word] = STATUS[c.status];
-  show(level, { ok: "That's my certificate", warn: "That's an older certificate of mine", bad: "That certificate was compromised" }[level], c.title, `Valid ${c.not_before} to ${c.not_after}.`, statusLine(c.status));
+  show(level, { ok: "That's my certificate", warn: "That's an older certificate of mine", bad: "That certificate was compromised" }[level], c.title, `Valid ${c.not_before} to ${c.not_after}.`, statusLine(c.status), pk(c));
 }
 
 // ------------------------------------------------------------------ fingerprints
@@ -156,7 +158,7 @@ function checkFingerprint(input) {
   if (cert) {
     const [level, word] = STATUS[cert.status];
     return show(level, `That's my certificate (${word})`, cert.title,
-      `${h.length === 64 ? "SHA-256" : "SHA-1"} fingerprint matches.`, statusLine(cert.status)), true;
+      `${h.length === 64 ? "SHA-256" : "SHA-1"} fingerprint matches.`, statusLine(cert.status), pk(cert)), true;
   }
   if (h.length === 40 || h.length === 16) {
     const hit = findPgp(h);
@@ -164,7 +166,7 @@ function checkFingerprint(input) {
       const [level, word] = STATUS[hit.k.status];
       return show(level, `That's my PGP key (${word})`, mine(hit.k, hit.part),
         h.length === 16 ? "That's a key ID; the full fingerprint is safer to compare." : "",
-        statusLine(hit.k.status, hit.k.revoked)), true;
+        statusLine(hit.k.status, hit.k.revoked), pk(hit.k)), true;
     }
   }
   if ([8, 16, 40, 64].includes(h.length))
@@ -231,7 +233,7 @@ function checkKey(key) {
     return show("bad", "Not one of my PGP keys",
       `Its fingerprint is ${group4(fpr)}, which doesn't match any key I use or have used.`);
   const [level, word] = STATUS[hit.k.status];
-  show(level, `That's my PGP key (${word})`, mine(hit.k), statusLine(hit.k.status, hit.k.revoked));
+  show(level, `That's my PGP key (${word})`, mine(hit.k), statusLine(hit.k.status, hit.k.revoked), pk(hit.k));
 }
 
 async function detached(signature) {

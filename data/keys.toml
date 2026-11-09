@@ -1,6 +1,10 @@
 # Source of truth for what each key is. scripts/build.py reads this plus the
 # key/cert files under public/ and generates keys.txt, index.html, keys.json and ssh.txt.
 # Fingerprints are never typed here: they're computed from the files.
+#
+# private_key: where the private key is, in public-safe terms (no paths). The
+# exact files are listed in the RESTORE.md files in ~/doomsday. Keep this honest:
+# it's how I (and anyone else) can tell whether a key can still sign or decrypt.
 
 [owner]
 name = "Benjamin Soyka"
@@ -11,6 +15,7 @@ site = "https://keys.bensoyka.com"
 
 [[pgp]]
 file = "pgp/BC4876BDC8AB5AB8C9CB81659497E30583D68D89.asc"
+private_key = "Held. Everyday parts on a hardware security key; full key in an offline, passphrase-protected backup."
 status = "current"
 title = "Main PGP key"
 use = """
@@ -24,6 +29,7 @@ ssh_subkey = "4CD451BCEC8DB32C03B5026CC83BA4E193E4483E"
 
 [[pgp]]
 file = "pgp/13ABAA107960069C2D1BF9D0D1937DCDF9A524BC.asc"
+private_key = "Held, in an offline, passphrase-protected backup."
 status = "current"
 title = "Wikipedia PGP key"
 use = """
@@ -32,6 +38,7 @@ published on my Wikipedia user page. Rarely used, but still active."""
 
 [[pgp]]
 file = "pgp/0CA7CC16A64B68F3048EE8FEA5E726D5A65228EA.asc"
+private_key = "Held offline, encrypted to my main key, only to decrypt old messages."
 status = "revoked"
 title = "Previous PGP key (2021-2026)"
 use = """
@@ -40,6 +47,7 @@ wrong. Signatures it made before then are still genuine. Don't encrypt to it."""
 
 [[pgp]]
 file = "pgp/91FA69646625ECAB5DE4A69737799464147A3418.asc"
+private_key = "Held offline, passphrase-protected, only to decrypt old messages."
 status = "revoked"
 title = "Original PGP key (2020-2025)"
 use = "Revoked 2025-07-19. Listed for completeness."
@@ -48,6 +56,7 @@ use = "Revoked 2025-07-19. Listed for completeness."
 
 [[x509]]
 file = "pki/root.crt"
+private_key = "Held offline, encrypted to my main PGP key."
 crl = "pki/root.crl"
 role = "root"
 status = "current"
@@ -60,6 +69,7 @@ including after I renew my signing certificate."""
 
 [[x509]]
 file = "pki/personal-ca.crt"
+private_key = "Held offline, encrypted to my main PGP key."
 crl = "pki/personal-ca.crl"
 role = "ca"
 status = "current"
@@ -70,6 +80,7 @@ key is also kept offline. You don't need to trust it separately."""
 
 [[x509]]
 file = "pki/certs/docsign-current.crt"
+private_key = "On a hardware security key only. It can't be copied off, so there is no backup; if the hardware is lost I issue a new certificate."
 role = "signing"
 status = "current"
 title = "Document signing certificate"
@@ -82,6 +93,7 @@ attestation_intermediate = "pki/attestation/docsign-current-f9.crt"
 
 [[x509]]
 file = "pki/retired/2026-10-30-selfsigned-9c.crt"
+private_key = "Destroyed when the hardware key slot was reused for the current certificate (Nov 2026)."
 status = "retired"
 title = "Earlier signing certificate (Oct–Nov 2026)"
 use = """
@@ -90,6 +102,7 @@ signatures are genuine; it's simply been replaced."""
 
 [[x509]]
 file = "pki/compromised/2026-08-24-p256-test.crt"
+private_key = "Exposed, then deleted on my side. Someone else may have a copy."
 status = "compromised"
 title = "P-256 test certificate (Aug 2026)"
 use = """
@@ -100,6 +113,7 @@ anything real. Treat anything signed with it as not from me."""
 
 [[legacy]]
 title = "Keybase"
+private_key = "Keybase's own device keys, not part of this setup."
 use = """
 My old Keybase proof stays up so existing checks don't break, but Keybase
 isn't maintained anymore and this page replaces it."""

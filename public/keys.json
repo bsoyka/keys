@@ -8,6 +8,7 @@
    "file": "pgp/BC4876BDC8AB5AB8C9CB81659497E30583D68D89.asc",
    "revoked": null,
    "created": "2026-08-21",
+   "private_key": "Held. Everyday parts on a hardware security key; full key in an offline, passphrase-protected backup.",
    "uids": [
     "Benjamin Soyka <ben@bensoyka.com>",
     "Ben Soyka <soyka006@umn.edu>",
@@ -38,6 +39,7 @@
    "file": "pgp/13ABAA107960069C2D1BF9D0D1937DCDF9A524BC.asc",
    "revoked": null,
    "created": "2022-12-24",
+   "private_key": "Held, in an offline, passphrase-protected backup.",
    "uids": [
     "Bsoyka <bsoyka.wikipedia@gmail.com>"
    ],
@@ -56,6 +58,7 @@
    "file": "pgp/0CA7CC16A64B68F3048EE8FEA5E726D5A65228EA.asc",
    "revoked": "2026-08-21",
    "created": "2021-01-24",
+   "private_key": "Held offline, encrypted to my main key, only to decrypt old messages.",
    "uids": [
     "Benjamin Soyka <hello@bsoyka.me>",
     "Benjamin Soyka <bensoyka@icloud.com>",
@@ -79,6 +82,7 @@
    "file": "pgp/91FA69646625ECAB5DE4A69737799464147A3418.asc",
    "revoked": "2025-07-19",
    "created": "2020-06-15",
+   "private_key": "Held offline, passphrase-protected, only to decrypt old messages.",
    "uids": [
     "Benjamin Soyka <bensoyka@icloud.com>"
    ],
@@ -101,7 +105,8 @@
    "not_before": "2026-10-30",
    "not_after": "2031-10-30",
    "sha256": "566B27B1A62165016B68EA9346C146CDF9CEE593C7F541F129708245C2E3384B",
-   "sha1": "B9F80A34B372E4F9F5B2EA2671CA34CDC1ED82A6"
+   "sha1": "B9F80A34B372E4F9F5B2EA2671CA34CDC1ED82A6",
+   "private_key": "Destroyed when the hardware key slot was reused for the current certificate (Nov 2026)."
   },
   {
    "title": "P-256 test certificate (Aug 2026)",
@@ -112,7 +117,8 @@
    "not_before": "2026-08-24",
    "not_after": "2036-08-21",
    "sha256": "056C87368DAA9AFE7863290C0CD24E84A4621383D7EA315DAF00955295E732BA",
-   "sha1": "E97B60494F0CBE1C7110CFC4BFF25C9F54A17D40"
+   "sha1": "E97B60494F0CBE1C7110CFC4BFF25C9F54A17D40",
+   "private_key": "Exposed, then deleted on my side. Someone else may have a copy."
   }
  ],
  "ssh": {

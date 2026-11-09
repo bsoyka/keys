@@ -15,7 +15,10 @@
 ## Adding or retiring a key or cert
 
 1. Put the public file under `public/pgp/` (named by full fingerprint) or `public/pki/`.
-2. Add or edit its entry in `data/keys.toml` (`status`: current, revoked, retired, compromised).
+2. Add or edit its entry in `data/keys.toml` (`status`: current, revoked, retired,
+   compromised) and its `private_key` line. Update `private_key` whenever a private
+   key is created, backed up, moved, destroyed or exposed: it's the record of which
+   private keys I still hold.
 3. `make sign deploy`.
 
 ## First-time setup (once)

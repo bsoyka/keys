@@ -210,6 +210,8 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
         for s in k.subkeys:
             caps = "/".join(CAPS[c] for c in s.caps if c in CAPS)
             a(f"  Subkey:      {s.fpr}  {caps}, {s.algo}" + (f", expires {s.expires}" if s.expires else ""))
+        if k.meta.get("private_key"):
+            a(f"  Private key: {k.meta['private_key']}")
         a(f"  Download:    {site}/{k.meta['file']}")
         if k.meta.get("alias"):
             a(f"               {site}/{k.meta['alias']}")
@@ -231,6 +233,8 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
         a(f"  Valid:       {c.not_before} to {c.not_after}")
         a(f"  SHA-256:     {c.sha256}")
         a(f"  SHA-1:       {c.sha1}   (what Acrobat shows)")
+        if c.meta.get("private_key"):
+            a(f"  Private key: {c.meta['private_key']}")
         a(f"  Download:    {site}/{c.meta['file']}")
         if c.meta.get("crl"):
             a(f"  Revocation:  {site}/{c.meta['crl']}")
@@ -280,6 +284,8 @@ def manifest(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) ->
     a("")
     for item in cfg.get("legacy", []):
         a(f"[LEGACY] {item['title']}")
+        if item.get("private_key"):
+            a(f"  Private key: {item['private_key']}")
         a(indent(item["use"]))
         a("")
     return "\n".join(L).rstrip() + "\n"
@@ -302,12 +308,13 @@ def keys_json(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -
             return None
         return {"title": title, "status": status, "file": c.meta["file"], "subject": c.subject,
                 "issuer": c.issuer, "not_before": c.not_before, "not_after": c.not_after,
-                "sha256": c.sha256.replace(":", ""), "sha1": c.sha1.replace(":", "")}
+                "sha256": c.sha256.replace(":", ""), "sha1": c.sha1.replace(":", ""),
+                "private_key": c.meta.get("private_key")}
 
     return {
         "primary": primary.fpr,
         "pgp": [{"fpr": k.fpr, "title": k.meta["title"], "status": status(k), "file": k.meta["file"],
-                 "revoked": k.revoked, "created": k.created,
+                 "revoked": k.revoked, "created": k.created, "private_key": k.meta.get("private_key"),
                  "uids": [u for u, _ in k.uids],
                  "subkeys": [{"fpr": s.fpr, "caps": s.caps, "expires": s.expires} for s in k.subkeys]}
                 for k in pgp],
@@ -346,6 +353,8 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
         elif k.subkeys and k.subkeys[0].expires:
             when += f", renewed before {k.subkeys[0].expires}"
         rows.append(row("Dates", when))
+        if k.meta.get("private_key"):
+            rows.append(row("Private key", e(k.meta["private_key"])))
         rows.append(row("Download", f'<a href="/{k.meta["file"]}">{k.fpr[-16:]}.asc</a>'))
         return item(k.meta["title"], st, k.meta["use"], rows)
 
@@ -359,8 +368,10 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
             if c.meta.get(k) and (PUBLIC / c.meta[k]).exists():
                 links.append(f'<a href="/{c.meta[k]}">{label}</a>')
         rows = [row("SHA-256", fp(c.sha256)), row("SHA-1", fp(c.sha1)),
-                row("Valid", f"{c.not_before} to {c.not_after}"),
-                row("Download", " · ".join(links + list(extra)))]
+                row("Valid", f"{c.not_before} to {c.not_after}")]
+        if c.meta.get("private_key"):
+            rows.append(row("Private key", e(c.meta["private_key"])))
+        rows.append(row("Download", " · ".join(links + list(extra))))
         return item(title, status, use, rows)
 
     def item(title: str, status: str, use: str, rows: list[str]) -> str:

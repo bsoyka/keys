@@ -168,8 +168,8 @@ LEGACY
   isn't maintained anymore. My accounts are now linked to my key on Keyoxide.
 -----BEGIN PGP SIGNATURE-----
 
-iHUEARYIAB0WIQTHuCbThVWvo65/ohbyAej6LXITnwUCavIfdwAKCRDyAej6LXIT
-n84yAQDUwWJWuV/0U7tIJdc+RuG9O9+fxdRlxvGwCelPrUjxjgD/QGAQp5uHHlsI
-HOSNY1cqz3d3gF0cC7eClbNh4UtmkQU=
-=zF9X
+iHUEARYIAB0WIQTHuCbThVWvo65/ohbyAej6LXITnwUCavIiRwAKCRDyAej6LXIT
+nyE6AP9wsNW0H+jSWbVHgDThtm2VJ0Wa2JRpTJUZZNAEEQIR8gD9FsZstGm7LTI3
+WAhoZUnY/x6Ve8cBfzcFDxixpxzh6w0=
+=iTbA
 -----END PGP SIGNATURE-----

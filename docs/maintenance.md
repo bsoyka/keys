@@ -8,6 +8,7 @@
 | Before late 2031 | Renew both YubiKeys' certs (9c signing, 9a/9d login) | `scripts/ca.sh yubikey primary`, then `… backup`; retire the old signing certs in `keys.toml`; re-pair macOS |
 | Before late 2036 | Renew the personal CA (10-year cert) | `scripts/ca.sh new-intermediate personal …` after moving the old one aside; reissue both 9c certs |
 | Any key change | Re-sign and redeploy the manifest | `make sign deploy` |
+| Yearly, and after any PGP or CA key change | Check the paper sets (legible, dry) and reprint | `scripts/ca.sh paper`: 2 copies of pages 1–4 (apartment folder, El Paso), page 5 (Proton) once, filled in by hand |
 
 `make check-expiry` lists every date above (and fails if one is within 60 days);
 a monthly scheduled task runs it and pings me. `make check` fails if `public/keys.txt` is unsigned or no longer matches what

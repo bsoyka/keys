@@ -18,6 +18,8 @@
 #                                     safe to re-run
 #   scripts/ca.sh asp-init            create the Keyoxide profile key and sign data/asp.toml (once)
 #   scripts/ca.sh asp-sign            re-sign the Keyoxide profile after editing data/asp.toml
+#   scripts/ca.sh paper               build the printable paper backup set (scripts/paper.py) on
+#                                     the RAM disk, open it to print, then destroy it
 #
 # Hierarchy: Root CA (offline, signs only intermediates)
 #            └─ Personal CA (offline, signs only my certs) └─ 9c document-signing cert
@@ -300,10 +302,26 @@ cmd_notation() {
   unset GNUPGHOME
 }
 
+cmd_paper() {
+  for t in paperkey qrencode zbarimg; do
+    command -v "$t" >/dev/null || { echo "brew install ${t/zbarimg/zbar}" >&2; exit 1; }
+  done
+  local page
+  page=$(python3 scripts/paper.py "$DOOMSDAY" "$RAM/paper")
+  say "Print it: 2 copies of pages 1-4 (cover, master key, revocation, CA keys), 1 copy of page 5 (Proton)"
+  echo "Safari: File > Print, Letter, scale 100%, no headers/footers. Don't save a PDF."
+  open -a Safari "$page"
+  pause "When the printer has finished,"
+  osascript -e 'tell application "Safari" to close (every tab of every window whose URL contains "PKIRAM")' 2>/dev/null || true
+  cancel -a -x 2>/dev/null || true   # drop any job data CUPS kept
+}
+
 main() {
   local cmd="${1:-}"; shift || true
-  # Keyoxide profile edits don't touch a CA key, so they don't need Wi-Fi off.
-  [[ "$cmd" == asp-sign ]] || check_offline
+  # Keyoxide profile edits don't touch a CA key, and printing needs the
+  # (Wi-Fi) printer, so neither needs Wi-Fi off. Nothing paper prints is
+  # usable without a passphrase or the PGP key.
+  [[ "$cmd" == asp-sign || "$cmd" == paper ]] || check_offline
   ramdisk_up
   case "$cmd" in
     issue-docsign)    cmd_issue_docsign "$@" ;;
@@ -315,6 +333,7 @@ main() {
     notation)         cmd_notation ;;
     asp-init)         cmd_asp_init ;;
     asp-sign)         cmd_asp_sign ;;
+    paper)            cmd_paper; exit 0 ;;
     ceremony)
       cmd_init_root
       cmd_new_intermediate personal "Benjamin Soyka Personal CA"
@@ -326,7 +345,7 @@ main() {
       cmd_asp_init
       cmd_notation
       cp docs/doomsday/pgp-keys-RESTORE.md "$DOOMSDAY/pgp-keys/RESTORE.md" ;;
-    *) sed -n '2,13p' "$0"; exit 1 ;;
+    *) sed -n '2,22p' "$0"; exit 1 ;;
   esac
   say "Done. Turn Wi-Fi back on, then: make sign deploy"
 }

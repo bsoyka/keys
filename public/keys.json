@@ -117,7 +117,7 @@
    "not_after": "2031-10-30",
    "sha256": "566B27B1A62165016B68EA9346C146CDF9CEE593C7F541F129708245C2E3384B",
    "sha1": "B9F80A34B372E4F9F5B2EA2671CA34CDC1ED82A6",
-   "private_key": "Destroyed when the hardware key slot was reused for the current certificate (Nov 2026)."
+   "private_key": "Was kept in software by Acrobat, never on hardware. Deleted when this certificate was retired (Nov 2026)."
   },
   {
    "title": "P-256 test certificate (Aug 2026)",

@@ -105,7 +105,7 @@ attestation_intermediate = "pki/attestation/docsign-backup-f9.crt"
 
 [[x509]]
 file = "pki/retired/2026-10-30-selfsigned-9c.crt"
-private_key = "Destroyed when the hardware key slot was reused for the current certificate (Nov 2026)."
+private_key = "Was kept in software by Acrobat, never on hardware. Deleted when this certificate was retired (Nov 2026)."
 status = "retired"
 title = "Earlier signing certificate (Oct–Nov 2026)"
 use = """

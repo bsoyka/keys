@@ -31,13 +31,14 @@ if (revoked) {
   head.textContent = "Don't trust anything on this page right now.";
   const p1 = document.createElement("p");
   p1.textContent = `My main PGP key was revoked on ${revoked}, and this page hasn't been ` +
-    "updated since. Fingerprints, certificates, downloads, and the checker below may be out " +
+    "updated since. Fingerprints, certificates, and downloads below may be out " +
     "of date, and anything signed with that key can no longer be relied on.";
   const p2 = document.createElement("p");
   p2.textContent = "If you need to verify something from me, reach me through a channel you already trust.";
   box.append(head, p1, p2);
   el.append(box);
   el.hidden = false;
+  $("check").remove(); // no checker while the page can't vouch for anything
 }
 
 let keysPromise;
@@ -204,9 +205,6 @@ let fileBytes = null; // set when a binary file was dropped/chosen
 let pendingSig = null; // detached signature waiting for its content
 
 async function check() {
-  if (revoked)
-    return show("bad", "Checker turned off",
-      `My main key was revoked on ${revoked}; this page can't vouch for anything until I update it.`);
   const text = $("input").value.trim();
   $("signed-wrap").hidden = true;
 
@@ -323,20 +321,23 @@ async function takeFile(file) {
   check();
 }
 
-$("checker").addEventListener("submit", (e) => {
-  e.preventDefault();
-  check();
-});
-$("input").addEventListener("input", () => (fileBytes = null));
-$("file").addEventListener("change", (e) => e.target.files[0] && takeFile(e.target.files[0]));
-$("signed-file").addEventListener("change", () => pendingSig && detached(pendingSig).catch((e) => show("bad", "Couldn't read that", e.message)));
+// Wire up the checker (it was removed above if the key is revoked).
+if (!revoked) {
+  $("checker").addEventListener("submit", (e) => {
+    e.preventDefault();
+    check();
+  });
+  $("input").addEventListener("input", () => (fileBytes = null));
+  $("file").addEventListener("change", (e) => e.target.files[0] && takeFile(e.target.files[0]));
+  $("signed-file").addEventListener("change", () => pendingSig && detached(pendingSig).catch((e) => show("bad", "Couldn't read that", e.message)));
 
-const drop = $("input").closest(".drop");
-for (const ev of ["dragenter", "dragover"])
-  drop.addEventListener(ev, (e) => (e.preventDefault(), drop.classList.add("dragging")));
-for (const ev of ["dragleave", "drop"]) drop.addEventListener(ev, () => drop.classList.remove("dragging"));
-drop.addEventListener("drop", (e) => {
-  e.preventDefault();
-  const f = e.dataTransfer.files[0];
-  if (f) takeFile(f);
-});
+  const drop = $("input").closest(".drop");
+  for (const ev of ["dragenter", "dragover"])
+    drop.addEventListener(ev, (e) => (e.preventDefault(), drop.classList.add("dragging")));
+  for (const ev of ["dragleave", "drop"]) drop.addEventListener(ev, () => drop.classList.remove("dragging"));
+  drop.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const f = e.dataTransfer.files[0];
+    if (f) takeFile(f);
+  });
+}

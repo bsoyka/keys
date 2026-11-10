@@ -10,6 +10,8 @@
 | Any key change | Re-sign and redeploy the manifest | `make sign deploy` |
 | Yearly, and after any PGP or CA key change | Check the paper sets (legible, dry) and reprint | `scripts/ca.sh paper`: 2 copies of pages 1–4 (apartment folder, El Paso); pages 5 (Proton) and 6 (my split-key letter) once each, apartment only, filled in by hand. `paper letters` reprints the friends' letters too |
 
+A daily GitHub Actions job in the private bsoyka/sirloin repo (`monitor/pgp_watch.py`) compares every public copy of the main PGP key (keys.openpgp.org, WKD, this site, GitHub, keyserver.ubuntu.com) with `public/pgp/` here, and opens an issue if one has an unknown subkey or user ID, an unexpected revocation, is out of date, or expires within 60 days. After any deliberate key change, update the copy here first, or it will flag the change.
+
 `make check-expiry` lists every date above (and fails if one is within 60 days);
 a monthly scheduled task runs it and pings me. `make check` fails if `public/keys.txt` is unsigned or no longer matches what
 `scripts/build.py` generates, so a stale manifest can't be deployed.

@@ -130,7 +130,7 @@ whenever the key gets a new subkey.</p>"""), raw))
         "fireproof folder (apartment) and El Paso. Not with friends.", f"""
 <h2>Revocation certificate for {group4(PGP_FPR)}</h2>
 <p>Revokes my main PGP key: anyone who imports this and publishes the key tells the
-world to stop trusting it. It can't sign, decrypt or impersonate anything. Use it
+world to stop trusting it. It can't sign, decrypt, or impersonate anything. Use it
 only if I've lost the key and its backups, or the key was compromised.</p>
 {block("Revocation certificate", rev, rev, rev.encode())}
 <h3>Use</h3>
@@ -235,7 +235,7 @@ Decrypt: <code>age -d -i KEY doomsday.tar.gz.age | tar xz</code></p>"""), None))
     cover = sheet("Paper backup set", "with every copy of this set.", f"""
 <h2>Paper backup set</h2>
 <p>Printed copies of what's needed to recover my keys if every computer, hardware
-key and cloud account is gone. Each sheet is explained on its face. Everything here
+key, and cloud account is gone. Each sheet is explained on its face. Everything here
 also lives, digitally, in my encrypted backups; full details are at
 <b>keys.bensoyka.com</b> and <b>github.com/bsoyka/keys</b> (docs/restore.md).</p>
 <p><b>If someone other than me is reading this:</b> please keep it safe and don't

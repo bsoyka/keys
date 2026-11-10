@@ -26,10 +26,12 @@ up "application/pkix-crl"      '*.crl'
 up "application/vnd.fdf"       '*.fdf'
 up "application/jose"          '.well-known/aspe/id/*'
 
+# status.json is never in public/ and is left alone: only the PGP watch in
+# bsoyka/sirloin writes it (revocation banner); delete it by hand once fixed.
 # Remove objects that no longer exist in public/. Done by hand rather than
 # `sync --delete`, which would re-upload unmatched files with guessed types.
 comm -13 <(cd public && find . -type f | sed 's|^\./||' | sort) \
-         <(aws s3api list-objects-v2 --bucket "$BUCKET" --query 'Contents[].Key' --output text | tr '\t' '\n' | grep -v '^None$' | sort) |
+         <(aws s3api list-objects-v2 --bucket "$BUCKET" --query 'Contents[].Key' --output text | tr '\t' '\n' | grep -v '^None$' | grep -vx 'status.json' | sort) |
 while read -r key; do
   echo "removing stale $key"; aws s3 rm "$S3/$key"
 done

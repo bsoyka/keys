@@ -18,6 +18,17 @@
 }
 
 * { box-sizing: border-box; }
+
+/* Revocation banner (verify.js fills it from /status.json, which the PGP watch
+   in bsoyka/sirloin writes when my main key is revoked). */
+.alert {
+  background: var(--bad); color: #fff; padding: 1rem 1.25rem;
+  border-bottom: 4px solid #7f1d1d;
+}
+.alert[hidden] { display: none; }
+.alert > div { max-width: 64rem; margin: 0 auto; }
+.alert strong { display: block; font-size: 1.25rem; margin-bottom: 0.25rem; }
+.alert p { margin: 0.25rem 0; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;

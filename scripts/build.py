@@ -525,6 +525,7 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
 <script type="module" src="/verify.js"></script>
 </head>
 <body>
+<div id="alert" class="alert" role="alert" hidden></div>
 <main class="grid">
 
 <section class="card span-2 intro">

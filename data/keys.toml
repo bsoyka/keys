@@ -104,6 +104,29 @@ attestation = "pki/attestation/docsign-backup-attest.crt"
 attestation_intermediate = "pki/attestation/docsign-backup-f9.crt"
 
 [[x509]]
+file = "pki/notary-ca.crt"
+private_key = "Held offline, encrypted to my main PGP key."
+crl = "pki/notary-ca.crl"
+role = "ca"
+status = "current"
+title = "My notary certificate authority"
+use = """
+Sits under the root and issues only the certificate I notarize with. To check
+a document I notarized, trust this certificate. If you already trust my root,
+you don't need to trust it separately."""
+
+[[x509]]
+file = "pki/certs/notary.crt"
+role = "signing"
+status = "current"
+title = "Notary signing certificate"
+private_key = "In my computer's secure hardware only. It can't be copied out, so there is no backup; if the computer is lost or replaced I issue a new certificate."
+use = """
+What I sign with as a Minnesota notary public (commission 1636045900032,
+expires 2031-01-31). Used for notarial acts only; everything else I sign uses
+the document signing certificates above."""
+
+[[x509]]
 file = "pki/retired/2026-08-24-p256-signing.crt"
 status = "retired"
 title = "Earlier signing certificate (Aug–Nov 2026)"
@@ -113,6 +136,18 @@ Used to sign documents from August to November 2026, with its key stored on
 hardware. A software copy of the key existed and was shared outside my control
 on 2026-11-09, so it's retired as of then. Documents I sent before that are
 genuine; if in doubt, ask me."""
+
+# ---------------------------------------------------------------- notary
+
+# Drives the /notary page (how to check a document I notarized). `ca` and `cert`
+# name [[x509]] entries above by file. Update on recommission or a new notary cert.
+[notary]
+name = "Benjamin Michael Soyka"
+commission = "1636045900032"
+expires = "January 31, 2031"
+ca = "pki/notary-ca.crt"
+cert = "pki/certs/notary.crt"
+lookup = "https://notary.sos.mn.gov/Notary/NotaryDetails?notaryMasterId=799e73bb-9e2f-f111-90a1-00155d01c440"
 
 # ---------------------------------------------------------------- age
 

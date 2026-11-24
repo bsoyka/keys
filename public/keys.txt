@@ -1,5 +1,5 @@
 -----BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA256
+Hash: SHA512
 
 Key manifest: Benjamin Soyka <ben@bensoyka.com>
 https://keys.bensoyka.com/keys.txt
@@ -23,7 +23,8 @@ CURRENT
   Subkey:      C7B826D38555AFA3AE7FA216F201E8FA2D72139F  Sign, ed25519, expires 2029-08-20
   Subkey:      411A48120A5A2F1DC85CDD67AEE88FCE4521BF59  Encrypt, cv25519, expires 2029-08-20
   Subkey:      4CD451BCEC8DB32C03B5026CC83BA4E193E4483E  Auth, ed25519, expires 2029-08-20
-  Certified:   Wikipedia PGP key, 2026-08-21, on ben@bensoyka.com, soyka006@umn.edu
+  Certified:   Previous PGP key (2021-2026), 2026-08-21, on ben@bensoyka.com, soyka006@umn.edu
+               Wikipedia PGP key, 2026-08-21, on ben@bensoyka.com, soyka006@umn.edu
   Private key: Held. Everyday parts on a hardware security key; full key in an offline, passphrase-protected backup.
   Download:    https://keys.bensoyka.com/pgp/BC4876BDC8AB5AB8C9CB81659497E30583D68D89.asc
                https://keys.bensoyka.com/pgp.asc
@@ -38,6 +39,7 @@ CURRENT
   Type:        rsa4096, created 2022-12-24 (current)
   UID:         Bsoyka <bsoyka.wikipedia@gmail.com>
   Subkey:      582908A0B8A1C66BACD0FBA48151FB3DB546C371  Encrypt, rsa4096
+  Certified:   Previous PGP key (2021-2026), 2022-12-24, on bsoyka.wikipedia@gmail.com
   Private key: Held, in an offline, passphrase-protected backup.
   Download:    https://keys.bensoyka.com/pgp/13ABAA107960069C2D1BF9D0D1937DCDF9A524BC.asc
   A separate key for Wikipedia-related correspondence as User:Bsoyka, also
@@ -103,6 +105,33 @@ CURRENT
   The same as above, on my backup hardware key, so I can still sign if the
   first one is lost. Signatures from either are equally mine.
 
+[X.509 CA] My notary certificate authority
+  Subject:     Benjamin Soyka Notary CA
+  Issuer:      Benjamin Soyka Root CA
+  Serial:      74360B126A07A6FB53E9696C623C3FA2122FE6F5
+  Valid:       2026-11-24 to 2036-11-24
+  SHA-256:     00:C0:B2:07:1B:23:DE:26:D1:C5:5B:4B:9C:7E:AE:E1:34:82:5E:C0:2B:AE:6E:FA:D9:BF:49:36:3D:9F:A3:52
+  SHA-1:       D7:F3:92:BC:E4:96:9D:82:46:8E:D3:60:4F:A8:D2:BD:8D:F2:36:7D   (what Acrobat shows)
+  Private key: Held offline, encrypted to my main PGP key.
+  Download:    https://keys.bensoyka.com/pki/notary-ca.crt
+  Revocation:  https://keys.bensoyka.com/pki/notary-ca.crl
+  Sits under the root and issues only the certificate I notarize with. To check
+  a document I notarized, trust this certificate. If you already trust my root,
+  you don't need to trust it separately.
+
+[X.509] Notary signing certificate
+  Subject:     Benjamin Michael Soyka <ben@bensoyka.com>
+  Issuer:      Benjamin Soyka Notary CA
+  Serial:      2BAF915D6973248FB79F8C3A8087A86500814FA7
+  Valid:       2026-11-24 to 2031-02-01
+  SHA-256:     8B:A9:A6:35:E6:B5:CC:6C:AB:F7:6F:DB:82:2E:B6:5C:AD:38:5F:CE:DB:96:68:53:14:05:98:99:C3:17:F7:9E
+  SHA-1:       66:DF:C6:75:49:AB:F3:A2:7A:00:38:C0:79:30:2F:C3:70:95:02:E0   (what Acrobat shows)
+  Private key: In my computer's secure hardware only. It can't be copied out, so there is no backup; if the computer is lost or replaced I issue a new certificate.
+  Download:    https://keys.bensoyka.com/pki/certs/notary.crt
+  What I sign with as a Minnesota notary public (commission 1636045900032,
+  expires 2031-01-31). Used for notarial acts only; everything else I sign uses
+  the document signing certificates above.
+
 [KEYOXIDE] Keyoxide profile
   Identifier:  aspe:keys.bensoyka.com:NGXUYTLMNMHQGGMPHUDLAWXOLY
   Profile:     https://keyoxide.org/aspe:keys.bensoyka.com:NGXUYTLMNMHQGGMPHUDLAWXOLY
@@ -115,6 +144,18 @@ CURRENT
   Download:    https://keys.bensoyka.com/.well-known/aspe/id/NGXUYTLMNMHQGGMPHUDLAWXOLY
   Links my domains and accounts to my main PGP key. Keyoxide checks each link
   live, in both directions.
+
+[AGE] Backup encryption keys
+  Key 1:       age1pq1jvsuzdqqx86wjl0aanqsl8xzls255n42z0y92eu9z5z6vztz49yxntf5v3xrgs25jflmf76ex4tkeuht2zaesmkazk5hs3pcsp9tgjh5xs9hcjykmpcwese6cnvxvx7zfe2wcdcx5nz34q4840s9etge42a80vgjsjx368y7hvjzvdvpssr92hw9xynltakz9epzjzj4navekvz48sdulc7yzx542djcvq58s6fjdqwtdfkdcl242lwu9h2pvnv8y986awwpcmxv0axntu4xz2dsmgmzf237sndf6kc9d73vw09x8vayy53tkggkfwsyc47pj2ay79e2xd5dlyfz7x9p2pkgz7qqed6gs5cvwqq8kx74yktnxqk0fdzcwzydv23mrul9043y5fuaay0lx4ysa8x96kse2mpnz4t88swtwjcrfqzye7wy977atjs3v8pjtnywanvpqavf2cv6txy7ywqaeej39hk8ksz6485appxcwadzndkvz2ktyc4r8dzgt8j5dxurx6s7md6z7w64sggl2hn3lpqapmzn2yy90drhwfd6v0ck4pvtu7a6efenuksvd7rxkjzcfpttc9zfhlxg0e7xpu2wsu4swgkyy9k0ckdr5y7jyg5xgkpjewcs73s2vyevmd9e0cjdxkez6px2rvvsmu6fnrvtpyqm086e5y9evpy0pq6tepxppguud8au4q84t2avhyf32ncz2ef6ngj676t0n2qqdyuctnn2skmnqcq2gg8ud3q9hft6ny6zzg2rpfy68jq7qg56u54jfm3s8gqn3jvgkch8dvwxhvmx8ld5kg4avklvrgum2gr8hvssgr8u2k6hyuyuhv4ltgrf886yj49ke0llk5epvau9xkda623quv6y494prg094f6ng5thelpyraz5qs65y5wf0y7wupjh9mfc7zah5fpdszxq5ymgd9zh7d2kyvu6fucyvaaywertpfathtehqv89qcwtdtc7w6p5dp5ztptzyyarx5e3kxtljsfhp6guyf23x6a5fmuu2ufqj9883yespdguys5gpfmykhyg5txq9w55j9emuqtxf8cr9wc0g09845wy42395hwejcwrfv3azwghrktqpsg2pdv80kf9y7he2qk0tavxlr6favecwa5asty07tr0rq5a8z2s5pe3p99yc84vm2w9pf4eehac4ex5h4vy4nzsyrp8cakxya33yf7qk9kjcg0x3qszw5kz6hgk7g26xn30vpuava85rg4ehxve0555wpfdcae8w2x63uq7803vsyz5fcs5ja03ssm4xqq6dkujnpyskx85z4nrnw7y3ftz9h9umqy237y3kcz6u232qvyczdahqzmygfkcknafyq5xjatawyne8pdnk7pxyyhunww0w6ze55kpdjq6tvtkgy9lsylxcy467nu8s45h20q5dydw0w5jf4nr4tzrtzm30qa9xcva6v2gqksaapmzdmzuemvmyhgt9gnr3cnxjwxydh6vrdeqzjygh2wa05wpkaseuqeks9x9zazkf2kwfkpuknr2ww3ndlq9fgpf0ywgev6eggpn05g62hydxr0knsur0gpdx6e8wvpedqtu0qsauqeq9awyyjsxxcv3e2flkh9h5hx9e99vwmdv5jj22xx2wg2x8gpgny9ftlrgdanrzwc83n3mdvvae2rkl2r5lf5yjmnlzxtejqfvnja9x32633nzrgudkc8hg4l2jwgaqc5ek05jnmt0e3xt8qevkz5euyez7k78swlg4sjqmpr3vjzn4akgvt3m5hftj4mqgshf0um8r04j435fwyhd3tl6cgc9j0shr9zwy956kac3yyplae629khdj7kmdzyzpjn3kmxn6c7q6g9arl65d4xfup3ptt07zmsmvjtf2lljfxv28n3pgezfdnh54qm8f56z7eg4
+  Private key: Held offline, split into parts kept by different people.
+  Key 2:       age1pq1gtugz8xsqrhgyas5220cc956funpuaa6n6assr27m2nflg5du83m2mxxrv3qyk9egyskjzvyms6hquyngm3cgqyvg0pykc6ersdy4f29hcnxkm4j8ya4gujheec3zpp8jy9qgqun33mletyyrjdgddhpfsx629ntq9fleg3usysc0sqz8sxhfsua7gjwsps3xvnyc0xjf0xhccnvqa7fnq507nr4ex7pjjk2cejlxcnzle2jkymq63w5qcvv5n8a837xsxfeg95rmxmfg25vy6znv7tyc79pj8skyq2vh99uxmfywuejr6ty9aqgm4e2gnfvq4n0y3y69yzfxu32dcf9dr3dty8sz9zu0cshjlpshztvz0fqzq7cz2klqw3zf09hv0nm2yqzja9wdzklacxydlq88kvuvscthfq5c2swaytvew3y2dsh9qh0zct93zyfadzry3pp59gneu953nas234rfyygretsn5lewasmgkv2y0phnzds7kryccucv009jtfjmwulux5xlag3qn48xulrqggm3rqar53vxs6ee2ak4qq655jm7w8706u2y5emhd3yg9ts03rj3prpae6q4gnqqexj3cksppj7sj5yuv259snhml9rytsqy0tglv4z7kduhwq4f7042rfvejn3gqqgfwme74ex3xxkev8a590z0zqwnengda5qdvk4wy6jp3x6wwj0tykx0tmtrhx3q0cteqrdpx6vgyspxev8hr5txh5sq9e3nf9787apxfe4nk68vhmxngztu25emqa8c5ac90gtnugh5gdmy3amfp5r97df20kjpr48xt97ukjdxeuaxnnm6nsep95gwyz9kdzpge6c2wnx85wryjyt4vk9hrr673eu8kpzg8np52hm4w8k9pg3qfnc9mgje0e64xshk4zgr8rytztlrp484fwcgk3szpmjnvh3fz93h7tq52xj0ez7dywck5rr2ag0c8tnkx02n84wvwgrtj9a6dnl5qm905amcnq6f2jmpj95j2fdfeuct2h3y2n4svl8g9qu6zc4u7grkxysj2au08cqev3k0yqmy9f2u7rf0lv6p8msyzkc557900m6whfcwku5yvzp0xpkpd794vg98xt5q8trt86lqxeq7dcq6lr9x5g9dwc9pgd0tsrm695sa8mv69c5q7mnd855ewzr4trfy8arjj7e3fyp00ekezl932w8t0vszkky4a48j07dy2d6t95a2yzjzqpz258tj737nz5nrxewhf3kvpjhe62dgp9l5pk8kxnc0sz9l0f33tvt2hlhwg29zf6sckktlm0jgzm62ylsxu3zlavlnxpe7jkgxwz8gtgl6e5smxv79sag6kttrkll32eyyenklzgnqzqr524222wnrn5usuqz4wads9nen5j2rg2hwqpguyh0hqtkdlggs02jprvnqfkzdv7r8zp5tqgvf4sqzcv4vmnklj772vkvjx99z9gv8zmjvc700qxd8248spkrjwap3dp3clfyrfue8zmdukj9y7xpttgq98f73vfr4juwdgeu42vr80wqp0kmm3kx83qq8kxzaejfhu9wetg4rj8k2c3nq6evgcw3nfslqy4upp9dtz3uuz6k8z4mry809x07qekxmwy66nu44zf4fmpq80pjeyvt7ke80l7fwfa6ckzay8ruger4apkxu2dz9rdypqfgcdks9s2c9cz60254hwrgwkhkngskv3x7hyt5gcjzcpmfpcj4s66mrjnvmf9ey3e9ql5kq7apddqx8jqsh46ywhej6x2g84e4prk5jcf52hr9cxa34xacpdraq2l4lqecpftfk9aqhddnv9kdtt6vcvagrea5mxz5l5pzp3f5mjtfza448z4lknnyxthaxvt4kx7zxsw2yxprqwl4pdtkqt0j277x7ph6amyffgxfgre8
+  Private key: Held offline.
+  Key 3:       age1pq1cn6quhpuhez7hvwty39lnx5j88yxpfsefku3vefvx23l5lxxerncqw8ytgpuszfutzg902qpgxt8344vxeztshahmjgf4rqms5ztjnzrpzmr4wdp0f2yr463njjhtrautc675g3vmvgjd9ads3j3aycmqj27x0v9ny85v7p9avfydykreslk8pytf3gjswgdkq39c3lgq7vlxvuvvxev3cszxqsz4fw4gmuqscjx564amcjgfscrh8gey593wxjtn3nynxztszwqs3grqkdwtgumu0xjrk6vg5zenxcc324ug6lckxsahcxr6xn636ytf8hahpruga6upur7hzffss22v0uay6v36fkmpwyhtle2cvzhg6lx24hwkgh5afy9uj5jwnq3nttydw34ly02jemtuvtrvsd9vew9h3evx3x9fzp070zrf42343dpyfd32c47mys78e586tp4yuxrcjqmyf9w0ay7jsqsycj4g68qya2f3qs8tg9v99625md34z8pvz39h9j5vd9zpc9uyrpzqw3kcpsnhjwnnz4g79eh8wex0ml8z3ycxpkkdcguahc6avmvsgl6w9da0w2x0xfyp99c3qhu39xqj6qg4jd533v4647f6wu5j9nkq2wxl99ddf6p2gr6zlj6vxwf09zym2t9j4qf5qu9scy6ypnfxsxf9d0fzsgmq52pr3u9sxd4jhcx4f0auasupa2m6nepr734vauju2spg7r55kvnsnwx3uzejn556pwlqyq5pucnwz93ysjax6cjes3x845pdjueq6sepf96xvh7qap6uaf09ljf0fxxygng2xrwspex76aevlpq227n8hvy28ua6dplenrs8ju8gpq68uuq2rfcja55uvnq8qqglvk39vpr2k2wsve5cxv7w3fmcw0j94qgjkaktq9rwurrwysssuq3vex2yszcqyzkwgywxagv75sepmkc2r8832pk9sex3v2979gu2np65z25qw3lzxe0alnzpkphvrzrczrkxzln2q6e5e2uf7ugkzpz5z88sx4kgzuesrgkmd8xy2txsthj3ft3q7dv9gzjauludychx72v2qg0mey8w65ge6exdqn00z0l8xwf2wqnrkqhrw5rhswvtpkuyy8mfw9w9az8s93hhasyzzrn5trkrvuemd59d0tes78prgmu8v2sw65shkgzswqt9yqlh008y66n8sdenxmvqrfp9sr7ywdt5fxgmk2yug9z2fwx2p59gdaymyn6uwakr4fqehhkqyhszhz02a2dqd204tgcpat452alzl6vc0z9p7dsu0j9g0r6ccckgpsu5zmlf9q09d5uc8293zd32r0hw5jry7e4lxce05zfv9ed4zpxjq6yzf6ye6t8yngsf495h35hjr9h3qqsk97fls0tzvpyzrhpq4xwkj4w5kq2t8r5qkmy3rj3tx2wxaag27y2qxy620424g8v5yrg59vsv6eh0m78e2ptp2kyj0rrss95pjv2xdp9v92ajzzkm0rgfxzs6rj4775xgnnjyv7877v5lk3689rs658rtzhpk3dv03xy53gj4mrq8dncsjjjrx43g7rw69s9cjjz092tkjlpchvq5fdlzap49myfqu9q3vc32vcj5uf85ps7wndjqj5rpv2jr8hhnsue4nqrw9w996gc5t4r4ramegcrqusaltwfrwcut9spr88rny63mz23r52f3ypqxmmlq7l80znd53ue89p288q6tvcrv7045aq55et0rjn46uspskrypzhqgs8k62zcfqnk824qg63pk3aeqamnx3cqwmnf50ctdnpvppm7wf7tg9l49525gxfsm4wv4dsctljhxlm64jq3as93upwmhfpz25885guy0q4pmu6ugld7lwec2w4a8gv9kds45mnaudxll6xkmhw2na7mpqzynkgk
+  Private key: Held in my password manager.
+  Download:    https://keys.bensoyka.com/age/backups.txt
+  My backups are encrypted to these three age keys before they leave my
+  computer; any one of them can decrypt. They're listed so you can tell they're
+  mine, not because anyone else needs to encrypt to them.
 
 ======================================================================
 RETIRED OR REVOKED (history only; don't encrypt to or newly trust)
@@ -168,8 +209,9 @@ LEGACY
   isn't maintained anymore. My accounts are now linked to my key on Keyoxide.
 -----BEGIN PGP SIGNATURE-----
 
-iHUEARYIAB0WIQTHuCbThVWvo65/ohbyAej6LXITnwUCavIqJgAKCRDyAej6LXIT
-nyHBAQDp4WLdlcTx1Z1WuLcALWKxf05y1VypeelwD3yOHScAtQEAyuXHdQgW0f9H
-1H3jdTqVm/VdCOBEYcXvaNNI6XnUmwU=
-=nbcJ
+iJEEARYKADkWIQTHuCbThVWvo65/ohbyAej6LXITnwUCawXwdRsUgAAAAAAEAA5t
+YW51MiwyLjUrMS4xMiwwLDMACgkQ8gHo+i1yE59oIQEA0LQgPN9kyqy1CeJduy5E
+ICamcQhOV1kpyJ/HnM3l6YQBAILxC1lWvayFOA1e17Ixquh21W940fUnIk7tg4iy
+uWsF
+=Jhmp
 -----END PGP SIGNATURE-----

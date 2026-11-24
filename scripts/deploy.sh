@@ -17,6 +17,7 @@ up() { # content-type, then include globs
   aws s3 sync public/ "$S3" "${args[@]}" --content-type "$ct" --cache-control "$CC"
 }
 up "text/html; charset=utf-8"  '*.html'
+up "text/html; charset=utf-8"  'notary'   # the /notary page: no extension, so S3 can't guess its type
 up "text/css; charset=utf-8"   '*.css'
 up "text/javascript; charset=utf-8" '*.js' '*.mjs'
 up "application/json"          '*.json'

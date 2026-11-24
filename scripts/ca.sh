@@ -7,6 +7,8 @@
 #   scripts/ca.sh issue-login LABEL   new on-device macOS login keys in 9a + 9d, certs from the
 #                                     personal CA (then pair with sc_auth; docs/macos-login.md)
 #   scripts/ca.sh yubikey LABEL       issue-docsign + issue-login for one YubiKey
+#   scripts/ca.sh issue-notary        new Secure Enclave key (non-exportable, Touch ID) + notary cert
+#                                     from the notary CA (create that first: new-intermediate notary …)
 #   scripts/ca.sh crl                 re-sign every CA's revocation list (yearly)
 #   scripts/ca.sh revoke CA SERIAL [REASON]
 #                                     revoke a cert issued by CA (root|personal), then re-sign CRLs;
@@ -24,7 +26,8 @@
 #                                     cloned at $SIRLOIN_DIR, default ~/personal/sirloin)
 #
 # Hierarchy: Root CA (offline, signs only intermediates)
-#            └─ Personal CA (offline, signs only my certs) └─ 9c document-signing cert
+#            ├─ Personal CA (offline, signs only my certs) └─ 9c document-signing + 9a/9d login certs
+#            └─ Notary CA (offline, signs only my notary cert) └─ notary cert (Secure Enclave)
 #
 # Key decisions:
 # - Plaintext CA keys only ever exist on a RAM disk that's destroyed on exit,
@@ -35,6 +38,9 @@
 # - Every new encrypted key is test-decrypted and compared before going on.
 # - The 9c key is generated on the YubiKey and never exported; its attestation
 #   is published so anyone can check that against Yubico's CA.
+# - The notary key is generated in this Mac's Secure Enclave and never
+#   exported (no attestation exists for it). It is not ceremony material:
+#   issue-notary runs on its own, after new-intermediate notary.
 
 set -euo pipefail
 
@@ -43,6 +49,13 @@ DOOMSDAY="${DOOMSDAY:-$HOME/doomsday}"
 SUBJ_DOCSIGN="/CN=Benjamin Soyka/emailAddress=ben@bensoyka.com/C=US"
 ROOT_DAYS=7305           # 20 years
 INTERMEDIATE_DAYS=3653   # 10 years
+
+# Notary commission (Minnesota). The cert carries the name exactly as commissioned
+# and expires with the commission (end of 2031-01-31 Central = 05:59:59Z next day).
+NOTARY_NAME="Benjamin Michael Soyka"
+NOTARY_COMMISSION=1636045900032
+NOTARY_NOT_AFTER=20310201055959Z
+SUBJ_NOTARY="/CN=$NOTARY_NAME/title=Notary Public, State of Minnesota/serialNumber=$NOTARY_COMMISSION/emailAddress=ben@bensoyka.com/ST=Minnesota/C=US"
 
 export KEYS_REPO="$PWD"
 CNF="$KEYS_REPO/pki/openssl.cnf"
@@ -233,6 +246,63 @@ cmd_issue_docsign() {
   echo "Issued serial $serial."
 }
 
+cmd_issue_notary() {
+  # Key decisions:
+  # - The key is made inside this Mac's Secure Enclave (p-256-ne: P-256, not
+  #   exportable) and unlocks with Touch ID. YubiKey retired slots can't sign
+  #   through macOS (tested 2026-11-24), which is the path Acrobat uses.
+  # - Separate from my personal signing key, so ending the notary registration
+  #   (which legally requires destroying the key) costs nothing else.
+  # - No backup exists by design. New Mac or wipe: revoke this cert, issue anew.
+  local key label hash serial pub
+  [[ -f pki/ca/notary/cert.pem ]] || { echo "create the notary CA first: scripts/ca.sh new-intermediate notary \"Benjamin Soyka Notary CA\"" >&2; exit 1; }
+  key="$(ca_key notary)"
+  label="notary-$NOTARY_COMMISSION"
+  say "Issuing the notary signing cert (Secure Enclave key, Touch ID)"
+  # sc_auth's helper can't read or write the RAM disk (it fails silently), so
+  # the request and the finished cert pass through a private temp folder. Both
+  # are public material; the CA key never leaves the RAM disk.
+  pub=$(mktemp -d /tmp/notary.XXXXXX)
+  hash=$(sc_auth list-ctk-identities | awk -v l="$label" '$4 == l {print $2}')
+  if [[ -n "$hash" ]]; then
+    # Left over from a run that stopped before a cert was issued: reuse the key.
+    # If it already carries a CA-issued cert, stop and revoke/delete first (docs/notary.md).
+    echo "Reusing the existing Secure Enclave identity $label ($hash)."
+    pause "Continue only if no notary cert has been issued for it yet."
+  else
+    sc_auth create-ctk-identity -l "$label" -k p-256-ne -t bio -N "$NOTARY_NAME"
+    hash=$(sc_auth list-ctk-identities | awk -v l="$label" '$4 == l {print $2}')
+    [[ -n "$hash" ]] || { echo "couldn't find the new identity in sc_auth list-ctk-identities" >&2; exit 1; }
+  fi
+
+  say "Creating a signing request with the new key (Touch ID)"
+  sc_auth create-ctk-csr -h "$hash" -f "$pub/notary.csr" -N "$NOTARY_NAME"
+  [[ -s "$pub/notary.csr" ]] || { echo "sc_auth wrote no signing request to $pub" >&2; exit 1; }
+  cp "$pub/notary.csr" "$RAM/notary.csr.raw"
+  # sc_auth writes PEM (checked 2026-11-24); DER is accepted too, just in case.
+  if grep -q -- '-----BEGIN' "$RAM/notary.csr.raw"; then cp "$RAM/notary.csr.raw" "$RAM/notary.csr"
+  else "$OPENSSL" req -inform DER -in "$RAM/notary.csr.raw" -out "$RAM/notary.csr"; fi
+  "$OPENSSL" req -in "$RAM/notary.csr" -noout -verify
+
+  say "Signing the certificate with the notary CA"
+  CA_KEY="$key" "$OPENSSL" ca -config "$CNF" -name notary_ca -batch -notext \
+    -extensions v3_notary -subj "$SUBJ_NOTARY" -enddate "$NOTARY_NOT_AFTER" \
+    -in "$RAM/notary.csr" -out "$RAM/notary.pem"
+  "$OPENSSL" verify -CAfile pki/ca/root/cert.pem -untrusted pki/ca/notary/cert.pem "$RAM/notary.pem"
+  serial=$("$OPENSSL" x509 -in "$RAM/notary.pem" -noout -serial | cut -d= -f2)
+  mkdir -p public/pki/certs
+  cp "$RAM/notary.pem" "public/pki/certs/$serial.crt"
+  cp "$RAM/notary.pem" "public/pki/certs/notary.crt"
+
+  say "Loading the certificate next to the Secure Enclave key"
+  cp "$RAM/notary.pem" "$pub/notary.pem"
+  sc_auth import-ctk-certificate -f "$pub/notary.pem"
+  rm -rf "$pub"
+  sc_auth list-ctk-identities
+  "$OPENSSL" x509 -in "$RAM/notary.pem" -noout -subject -issuer -enddate -ext keyUsage,extendedKeyUsage
+  echo "Issued serial $serial. Next: docs/notary.md (keys.toml entries, Acrobat appearance, publish)."
+}
+
 cmd_crl() {
   local d name
   for d in pki/ca/*/; do
@@ -333,6 +403,7 @@ main() {
     issue-docsign)    cmd_issue_docsign "$@" ;;
     issue-login)      cmd_issue_login "$@" ;;
     yubikey)          cmd_issue_docsign "$@"; cmd_issue_login "$@" ;;
+    issue-notary)     cmd_issue_notary ;;
     crl)              cmd_crl ;;
     revoke)           cmd_revoke "$@" ;;
     new-intermediate) cmd_new_intermediate "$@" ;;

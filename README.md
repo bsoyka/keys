@@ -8,12 +8,15 @@ PGP primary BC48…8D89 (offline)        ← root of trust
 ├─ clearsigns keys.txt                   (the manifest: every key, its status, how to verify)
 ├─ UID notation x509-root-sha256@bensoyka.com
 └─ subkeys S/E/A on YubiKey (touch)
-Root CA (P-384, offline, pathlen:1)    ← what people trust in Acrobat
-└─ Personal CA (P-384, offline, pathlen:0)
-   └─ document-signing certs in PIV 9c on each YubiKey, primary and backup
-      (on-device P-384 keys, attested)
-   └─ macOS login certs in PIV 9a + 9d on each YubiKey
-   (room for more CAs under the root later; none exist yet)
+Root CA (P-384, offline, pathlen:1)    ← what people trust in Acrobat for my own documents
+├─ Personal CA (P-384, offline, pathlen:0)
+│  ├─ document-signing certs in PIV 9c on each YubiKey, primary and backup
+│  │  (on-device P-384 keys, attested)
+│  └─ macOS login certs in PIV 9a + 9d on each YubiKey
+└─ Notary CA (P-384, offline, pathlen:0) ← what people trust for documents I notarize
+   └─ notary signing cert (P-256 key in this Mac's Secure Enclave, Touch ID,
+      not exportable, no backup); see docs/notary.md
+   (room for more CAs under the root later)
 Backup keys (age, post-quantum)        ← Sirloin's 3 recipients, listed for identification
 ```
 
@@ -25,13 +28,13 @@ Keep a clone of this repo in backups so recovery doesn't depend on GitHub.
 | Path | What |
 |---|---|
 | `data/keys.toml` | What each key is and its status. Edit this, not the outputs. |
-| `public/` | Exactly what's deployed. `pgp/`, `pki/` are source files; `style.css` (matched to bensoyka.com) and `verify.js` (the in-page checker) are hand-written; `index.html`, `keys.json`, `ssh.txt`, `pgp.asc` are generated; `keys.txt` is generated then signed. `vendor/` is a pinned OpenPGP.js (`scripts/vendor.sh` updates it). |
+| `public/` | Exactly what's deployed. `pgp/`, `pki/` are source files; `style.css` (matched to bensoyka.com) and `verify.js` (the in-page checker) are hand-written; `index.html`, `notary` (the /notary page), `keys.json`, `ssh.txt`, `pgp.asc` are generated; `keys.txt` is generated then signed. `vendor/` is a pinned OpenPGP.js (`scripts/vendor.sh` updates it). |
 | `pki/` | OpenSSL config and the CA database (public by nature). |
 | `scripts/build.py` | Generates the derived files; fingerprints are computed, never typed. |
-| `scripts/ca.sh` | Root CA operations, on a RAM disk, offline. |
+| `scripts/ca.sh` | CA operations (root, personal CA, notary CA), on a RAM disk, offline. |
 | `scripts/deploy.sh` | S3 upload with correct content types + CloudFront invalidation. |
 | `terraform/` | S3, CloudFront, ACM (state in `bsoyka-tfstate`, like infra). See [terraform/README.md](terraform/README.md). |
-| `docs/` | [restore](docs/restore.md) · [maintenance](docs/maintenance.md) · [acrobat](docs/acrobat.md) · [keyoxide](docs/keyoxide.md) · [macos-login](docs/macos-login.md) |
+| `docs/` | [restore](docs/restore.md) · [maintenance](docs/maintenance.md) · [acrobat](docs/acrobat.md) · [keyoxide](docs/keyoxide.md) · [macos-login](docs/macos-login.md) · [notary](docs/notary.md) |
 
 ## Everyday
 

@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notarized documents — Ben Soyka</title>
+<meta name="description" content="How to check a document notarized by Benjamin Michael Soyka, Minnesota notary public.">
+<link rel="canonical" href="https://keys.bensoyka.com/notary">
+<link rel="preconnect" href="https://fonts.bunny.net">
+<link rel="stylesheet" href="https://fonts.bunny.net/css?family=ibm-plex-sans:400,500,600,700|jetbrains-mono:400">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main class="grid">
+
+<section class="card span-2 intro">
+  <p class="eyebrow"><a href="/">Keys</a></p>
+  <h1>Notarized documents</h1>
+  <p>I'm a Minnesota notary public (commission 1636045900032, expires
+  January 31, 2031). When I notarize a document electronically, I sign it with a
+  certificate I use for nothing else. This page shows how to check one.</p>
+</section>
+
+<section class="card downloads">
+  <h2>Downloads</h2>
+  <ul class="links">
+    <li><a href="/pki/notary-ca.crt">Notary certificate authority</a> <span>the one to trust</span></li>
+    <li><a href="/pki/certs/notary.crt">Notary certificate</a> <span>what I sign with</span></li>
+    <li><a href="/pki/notary-ca.crl">Revocation list</a> <span>certificates I've cancelled</span></li>
+  </ul>
+</section>
+
+<section class="card task">
+  <h2>Check a document</h2>
+  <ol>
+    <li>Open the PDF in <b>Adobe Acrobat</b> (a browser's preview won't show signatures properly).</li>
+    <li>Click my signature on the notarial certificate page.</li>
+    <li>It should say the document <b>has not been modified</b> since the signature
+    was applied, and name the signer as Benjamin Michael Soyka.</li>
+  </ol>
+  <p>If Acrobat says the document was changed after I signed, don't rely on it.</p>
+</section>
+
+<section class="card task">
+  <h2>Make Acrobat recognize me</h2>
+  <p>Acrobat may say my identity is unknown. That's expected: my certificate comes
+  from my own certificate authority rather than a paid one. To trust it, once:</p>
+  <ol>
+    <li>Click my signature, then <b>Signature Properties</b> → <b>Show Signer's Certificate</b>.</li>
+    <li>Select <b>Benjamin Soyka Notary CA</b> and check its SHA-1 matches <code class="fp">D7:F3:92:BC:E4:96:9D:82:46:8E:D3:60:4F:A8:D2:BD:8D:F2:36:7D</code>.</li>
+    <li>On the <b>Trust</b> tab, choose <b>Add to Trusted Certificates</b> and tick
+    <b>Use this certificate as a trusted root</b>. Leave the other boxes unticked.</li>
+  </ol>
+  <p>If you already trust my <a href="/">root certificate</a>, you can skip this.</p>
+</section>
+
+<section class="card task">
+  <h2>Confirm my commission</h2>
+  <p>The Minnesota Secretary of State lists every notary. My record should show
+  the same name and commission number as my stamp and signature:</p>
+  <p><a href="https://notary.sos.mn.gov/Notary/NotaryDetails?notaryMasterId=799e73bb-9e2f-f111-90a1-00155d01c440">Look me up at notary.sos.mn.gov</a></p>
+</section>
+
+<section class="card span-2">
+  <h2>Fingerprints</h2>
+  <div class="keys"><article class="key"><h3>Notary certificate authority</h3>
+  <p>Issues only my notary certificate. Trusting it doesn't extend to anything else I sign.</p>
+  <dl><dt>SHA-256</dt><dd><code class="fp">00:C0:B2:07:1B:23:DE:26:D1:C5:5B:4B:9C:7E:AE:E1:34:82:5E:C0:2B:AE:6E:FA:D9:BF:49:36:3D:9F:A3:52</code></dd><dt>SHA-1</dt><dd><code class="fp">D7:F3:92:BC:E4:96:9D:82:46:8E:D3:60:4F:A8:D2:BD:8D:F2:36:7D</code></dd>
+  <dt>Valid</dt><dd>2026-11-24 to 2036-11-24</dd></dl></article>
+  <article class="key"><h3>Notary certificate</h3>
+  <p>Its private key lives in my computer's secure hardware and can't be copied out.</p>
+  <dl><dt>SHA-256</dt><dd><code class="fp">8B:A9:A6:35:E6:B5:CC:6C:AB:F7:6F:DB:82:2E:B6:5C:AD:38:5F:CE:DB:96:68:53:14:05:98:99:C3:17:F7:9E</code></dd><dt>SHA-1</dt><dd><code class="fp">66:DF:C6:75:49:AB:F3:A2:7A:00:38:C0:79:30:2F:C3:70:95:02:E0</code></dd>
+  <dt>Valid</dt><dd>2026-11-24 to 2031-02-01</dd></dl></article></div>
+  <p class="fine">These also appear in <a href="/keys.txt">keys.txt</a>, the list signed with my PGP key.</p>
+</section>
+
+<section class="card">
+  <h2>What my signature means</h2>
+  <p>It shows that I performed the notarial act the certificate describes, and
+  that the file hasn't changed since. It doesn't vouch for what the document says.</p>
+  <p>Something look wrong? <a href="mailto:ben@bensoyka.com">Email me</a> before relying on it.</p>
+</section>
+
+<section class="card legal">
+  <ul>
+    <li>&copy; 2026 Ben Soyka</li>
+    <li><a href="/">All my keys</a></li>
+    <li><a href="https://bensoyka.com">bensoyka.com</a></li>
+    <li><a href="mailto:ben@bensoyka.com">Email me</a></li>
+  </ul>
+</section>
+
+</main>
+</body>
+</html>

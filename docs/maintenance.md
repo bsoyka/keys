@@ -2,11 +2,13 @@
 
 | When | Task | How |
 |---|---|---|
-| Every October | Re-sign both revocation lists (root and personal CA; each is valid ~400 days, so a year plus slack) | Wi-Fi off, `scripts/ca.sh crl`, Wi-Fi on, `make sign deploy` |
+| Every October | Re-sign every revocation list (root, personal CA, notary CA; each is valid ~400 days, so a year plus slack) | Wi-Fi off, `scripts/ca.sh crl`, Wi-Fi on, `make sign deploy` |
 | Every October | Renew `security.txt` on bensoyka.com (expires each Nov 1; RFC 9116 wants under a year) | bump `Expires` in bsoyka/website's `security.txt.in`, re-sign, deploy |
 | Before 2029-08-20 | Extend PGP subkeys | [restore.md § D](restore.md#d-extend-pgp-subkey-expiry-before-2029-08-20) |
 | Before late 2031 | Renew both YubiKeys' certs (9c signing, 9a/9d login) | `scripts/ca.sh yubikey primary`, then `… backup`; retire the old signing certs in `keys.toml`; re-pair macOS |
-| Before late 2036 | Renew the personal CA (10-year cert) | `scripts/ca.sh new-intermediate personal …` after moving the old one aside; reissue both 9c certs |
+| Before 2031-01-31 | Notary commission ends: recommission, then issue a new notary cert (the old one expires with the commission) | update `NOTARY_*` at the top of `scripts/ca.sh`, delete the old Secure Enclave identity, `scripts/ca.sh issue-notary`; see [notary.md](notary.md) |
+| New Mac, or this Mac wiped | The notary key is gone (Secure Enclave only, no backup) | `scripts/ca.sh revoke notary <serial> cessationOfOperation`, then `scripts/ca.sh issue-notary` on the new Mac |
+| Before late 2036 | Renew the personal CA and the notary CA (10-year certs) | `scripts/ca.sh new-intermediate personal …` after moving the old one aside; reissue both 9c certs |
 | Any key change | Re-sign and redeploy the manifest | `make sign deploy` |
 | Yearly, and after any PGP or CA key change | Check the paper sets (legible, dry) and reprint | `scripts/ca.sh paper`: 2 copies of pages 1–4 (apartment folder, El Paso); pages 5 (Proton) and 6 (my split-key letter) once each, apartment only, filled in by hand. `paper letters` reprints the friends' letters too |
 
@@ -56,8 +58,8 @@ See [keyoxide.md](keyoxide.md). Editing account links only needs
 
 ## Adding another CA under the root (e.g. for friends)
 
-The root is built for this (`pathlen:1`), but nothing exists yet and nothing is
-published for it. When the time comes:
+The root is built for this (`pathlen:1`). The notary CA was added this way
+([notary.md](notary.md)); nothing exists yet for friends. When the time comes:
 
 1. Add a `[ friends_ca ]` section to `pki/openssl.cnf` (copy `personal_ca`, change
    `dir`) and a leaf profile with its own CRL/AIA URLs.

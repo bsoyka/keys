@@ -144,7 +144,10 @@ and redeploy keys.bensoyka.com.</p>"""), rev.encode()))
     blocks = []
     digest = b""
     for name, label in (("root.key.asc", "Root CA key"), ("personal-ca.key.asc", "Personal CA key"),
+                        ("notary-ca.key.asc", "Notary CA key"),
                         ("keyoxide-asp.key.asc", "Keyoxide profile key")):
+        if not (pki / name).exists():   # e.g. no notary CA yet
+            continue
         data = (pki / name).read_text()
         digest += data.encode()
         blocks.append(block(f"{label} ({name})", data, data, data.encode()))

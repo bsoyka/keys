@@ -33,6 +33,12 @@ This is also on https://keys.bensoyka.com.
 
 Or import `public/pki/root.crt` under Identities & Trusted Certificates → Trusted Certificates → Import.
 
+## Notarized documents
+
+Documents I notarize are signed with a separate notary certificate under its own
+CA. People checking one trust `public/pki/notary-ca.crt` (not the root), the same
+way as above. Setup and signing steps: [notary.md](notary.md).
+
 ## One-click trust file (optional)
 
 Acrobat can export a trusted certificate as an `.fdf` that others double-click to

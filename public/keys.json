@@ -156,11 +156,35 @@
    "private_key": "On a second hardware security key, kept somewhere safe. Can't be copied off."
   },
   {
+   "title": "My notary certificate authority",
+   "status": "current",
+   "file": "pki/notary-ca.crt",
+   "subject": "Benjamin Soyka Notary CA",
+   "issuer": "Benjamin Soyka Root CA",
+   "not_before": "2026-11-24",
+   "not_after": "2036-11-24",
+   "sha256": "00C0B2071B23DE26D1C55B4B9C7EAEE134825EC02BAE6EFAD9BF49363D9FA352",
+   "sha1": "D7F392BCE4969D82468ED3604FA8D2BD8DF2367D",
+   "private_key": "Held offline, encrypted to my main PGP key."
+  },
+  {
+   "title": "Notary signing certificate",
+   "status": "current",
+   "file": "pki/certs/notary.crt",
+   "subject": "Benjamin Michael Soyka <ben@bensoyka.com>",
+   "issuer": "Benjamin Soyka Notary CA",
+   "not_before": "2026-11-24",
+   "not_after": "2031-02-01",
+   "sha256": "8BA9A635E6B5CC6CABF76FDB822EB65CAD385FCEDB96685314059899C317F79E",
+   "sha1": "66DFC67549ABF3A27A0038C079302FC3709502E0",
+   "private_key": "In my computer's secure hardware only. It can't be copied out, so there is no backup; if the computer is lost or replaced I issue a new certificate."
+  },
+  {
    "title": "Earlier signing certificate (Aug\u2013Nov 2026)",
    "status": "retired",
    "file": "pki/retired/2026-08-24-p256-signing.crt",
-   "subject": "Benjamin Soyka",
-   "issuer": "Benjamin Soyka",
+   "subject": " CN=Benjamin Soyka",
+   "issuer": " CN=Benjamin Soyka",
    "not_before": "2026-08-24",
    "not_after": "2036-08-21",
    "sha256": "056C87368DAA9AFE7863290C0CD24E84A4621383D7EA315DAF00955295E732BA",

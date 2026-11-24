@@ -8,10 +8,14 @@ A clone of that repo is also in my backups. This folder holds only the secrets.
 |---|---|
 | `root.key.asc` | Root CA private key (P-384). Only used to create or revoke CAs under it and to re-sign its revocation list. |
 | `personal-ca.key.asc` | Personal CA private key (P-384). Issues my own certificates. |
+| `notary-ca.key.asc` | Notary CA private key (P-384). Issues only my notary signing certificate. |
 | `keyoxide-asp.key.asc` | Keyoxide profile key (Ed25519). Signs my Keyoxide profile. |
 
 All are encrypted to my PGP key BC48…8D89: they decrypt with the YubiKey, or with
 the PGP master backup in `../pgp-keys/` if the YubiKey is gone.
+
+Not here, on purpose: the notary signing key itself. It exists only inside one Mac's
+secure hardware and can't be backed up; if that Mac is gone, a new one is issued.
 
 Never decrypt these onto a normal disk. `scripts/ca.sh` decrypts them onto a RAM disk
 and destroys that when it exits.

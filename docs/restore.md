@@ -10,6 +10,8 @@ repo. Each doomsday folder has a short RESTORE.md listing its files.
 | Root CA key | `doomsday/pki/root.key.asc` | YubiKey, or the PGP master backup |
 | Personal CA key | `doomsday/pki/personal-ca.key.asc` | YubiKey, or the PGP master backup |
 | PIV 9c signing key | YubiKey only (not exportable, by design) | PIN + touch |
+| Notary CA key | `doomsday/pki/notary-ca.key.asc` | YubiKey, or the PGP master backup |
+| Notary signing key | This Mac's Secure Enclave only (not exportable, by design) | Touch ID |
 
 Tools (macOS): `brew install gnupg pinentry-mac ykman openssl@3`
 
@@ -131,3 +133,18 @@ A self-signed root can't be revoked in a way validators will notice, so:
 3. Move `pki/ca/` aside, then run `scripts/ca.sh ceremony` again (it also redoes
    the UID notation, which must change).
 4. Tell anyone who trusted the old root.
+
+## I. Mac lost, wiped or replaced (notary key)
+
+The notary key lives only in the Mac's Secure Enclave, so it's gone with the Mac.
+My personal signing certs are on the YubiKeys and aren't affected.
+
+1. `scripts/ca.sh revoke notary <serial>` if the Mac was *lost or stolen* (default
+   reason is key compromise); add `cessationOfOperation` if it was only wiped or replaced.
+2. Lost or stolen: report it to the Commissioner of Commerce (theft: law enforcement
+   too), Minn. Stat. § 358.645 subd. 6.
+3. On the new Mac: `scripts/ca.sh issue-notary`.
+4. Move the old notary cert to retired/compromised in `data/keys.toml`; `make sign deploy`.
+
+Anyone who trusts the notary CA keeps trusting the new cert. If the notary CA key
+itself is compromised or lost, follow **G** with `notary` in place of `personal`.

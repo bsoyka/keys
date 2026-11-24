@@ -509,6 +509,8 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
                  [row("Private key", e(i["private_key"]))] if i.get("private_key") else []) for i in cfg.get("legacy", [])]
 
     root_sha1 = fp(root.sha1) if root.present else "<em>(listed below once issued)</em>"
+    notary_link = ('\n  <p>Checking a document I notarized? See <a href="/notary">notarized documents</a>.</p>'
+                   if cfg.get("notary") else "")
     keyoxide_url = asp["url"] if asp else f"https://keyoxide.org/{primary.fpr}"
 
     return f"""<!doctype html>
@@ -581,7 +583,7 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
     <li>Select the top certificate and check its SHA-1 matches {root_sha1}.</li>
     <li>On the <b>Trust</b> tab, choose <b>Add to Trusted Certificates</b> and tick
     <b>Use this certificate as a trusted root</b>.</li>
-  </ol>
+  </ol>{notary_link}
 </section>
 
 <section class="card task">
@@ -637,6 +639,117 @@ def page(cfg, pgp: list[PgpKey], root: Cert, certs: list[Cert], ssh: str) -> str
 """
 
 
+def notary_page(cfg, certs: list[Cert]) -> str:
+    """keys.bensoyka.com/notary: how to check a document I notarized. Printed on every
+    electronic notarial certificate, so it's written for someone who has never
+    seen this site: steps first, details after. Same stylesheet as the main page;
+    no script, because nothing here needs one."""
+    e = html.escape
+    o, n = cfg["owner"], cfg["notary"]
+    by_file = {c.meta["file"]: c for c in certs}
+    ca, cert = by_file[n["ca"]], by_file[n["cert"]]
+
+    def fp(s: str) -> str:
+        return f'<code class="fp">{e(s)}</code>'
+
+    return f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notarized documents — Ben Soyka</title>
+<meta name="description" content="How to check a document notarized by {e(n['name'])}, Minnesota notary public.">
+<link rel="canonical" href="{e(o['site'])}/notary">
+<link rel="preconnect" href="https://fonts.bunny.net">
+<link rel="stylesheet" href="https://fonts.bunny.net/css?family=ibm-plex-sans:400,500,600,700|jetbrains-mono:400">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<main class="grid">
+
+<section class="card span-2 intro">
+  <p class="eyebrow"><a href="/">Keys</a></p>
+  <h1>Notarized documents</h1>
+  <p>I'm a Minnesota notary public (commission {e(n['commission'])}, expires
+  {e(n['expires'])}). When I notarize a document electronically, I sign it with a
+  certificate I use for nothing else. This page shows how to check one.</p>
+</section>
+
+<section class="card downloads">
+  <h2>Downloads</h2>
+  <ul class="links">
+    <li><a href="/{e(ca.meta['file'])}">Notary certificate authority</a> <span>the one to trust</span></li>
+    <li><a href="/{e(cert.meta['file'])}">Notary certificate</a> <span>what I sign with</span></li>
+    <li><a href="/{e(ca.meta['crl'])}">Revocation list</a> <span>certificates I've cancelled</span></li>
+  </ul>
+</section>
+
+<section class="card task">
+  <h2>Check a document</h2>
+  <ol>
+    <li>Open the PDF in <b>Adobe Acrobat</b> (a browser's preview won't show signatures properly).</li>
+    <li>Click my signature on the notarial certificate page.</li>
+    <li>It should say the document <b>has not been modified</b> since the signature
+    was applied, and name the signer as {e(n['name'])}.</li>
+  </ol>
+  <p>If Acrobat says the document was changed after I signed, don't rely on it.</p>
+</section>
+
+<section class="card task">
+  <h2>Make Acrobat recognize me</h2>
+  <p>Acrobat may say my identity is unknown. That's expected: my certificate comes
+  from my own certificate authority rather than a paid one. To trust it, once:</p>
+  <ol>
+    <li>Click my signature, then <b>Signature Properties</b> → <b>Show Signer's Certificate</b>.</li>
+    <li>Select <b>{e(ca.subject)}</b> and check its SHA-1 matches {fp(ca.sha1)}.</li>
+    <li>On the <b>Trust</b> tab, choose <b>Add to Trusted Certificates</b> and tick
+    <b>Use this certificate as a trusted root</b>. Leave the other boxes unticked.</li>
+  </ol>
+  <p>If you already trust my <a href="/">root certificate</a>, you can skip this.</p>
+</section>
+
+<section class="card task">
+  <h2>Confirm my commission</h2>
+  <p>The Minnesota Secretary of State lists every notary. My record should show
+  the same name and commission number as my stamp and signature:</p>
+  <p><a href="{e(n['lookup'])}">Look me up at notary.sos.mn.gov</a></p>
+</section>
+
+<section class="card span-2">
+  <h2>Fingerprints</h2>
+  <div class="keys"><article class="key"><h3>Notary certificate authority</h3>
+  <p>Issues only my notary certificate. Trusting it doesn't extend to anything else I sign.</p>
+  <dl><dt>SHA-256</dt><dd>{fp(ca.sha256)}</dd><dt>SHA-1</dt><dd>{fp(ca.sha1)}</dd>
+  <dt>Valid</dt><dd>{ca.not_before} to {ca.not_after}</dd></dl></article>
+  <article class="key"><h3>Notary certificate</h3>
+  <p>Its private key lives in my computer's secure hardware and can't be copied out.</p>
+  <dl><dt>SHA-256</dt><dd>{fp(cert.sha256)}</dd><dt>SHA-1</dt><dd>{fp(cert.sha1)}</dd>
+  <dt>Valid</dt><dd>{cert.not_before} to {cert.not_after}</dd></dl></article></div>
+  <p class="fine">These also appear in <a href="/keys.txt">keys.txt</a>, the list signed with my PGP key.</p>
+</section>
+
+<section class="card">
+  <h2>What my signature means</h2>
+  <p>It shows that I performed the notarial act the certificate describes, and
+  that the file hasn't changed since. It doesn't vouch for what the document says.</p>
+  <p>Something look wrong? <a href="mailto:{e(o['email'])}">Email me</a> before relying on it.</p>
+</section>
+
+<section class="card legal">
+  <ul>
+    <li>&copy; 2026 Ben Soyka</li>
+    <li><a href="/">All my keys</a></li>
+    <li><a href="https://bensoyka.com">bensoyka.com</a></li>
+    <li><a href="mailto:{e(o['email'])}">Email me</a></li>
+  </ul>
+</section>
+
+</main>
+</body>
+</html>
+"""
+
+
 def main() -> None:
     cfg = tomllib.loads((ROOT / "data" / "keys.toml").read_text())
     BUILD.mkdir(exist_ok=True)
@@ -654,6 +767,8 @@ def main() -> None:
     root = next(c for c in certs if c.meta.get("role") == "root")
     (BUILD / "keys.txt").write_text(manifest(cfg, pgp, root, certs, ssh))
     (PUBLIC / "index.html").write_text(page(cfg, pgp, root, certs, ssh))
+    if cfg.get("notary"):   # no extension, so the address is keys.bensoyka.com/notary
+        (PUBLIC / "notary").write_text(notary_page(cfg, certs))
     import json
 
     (PUBLIC / "keys.json").write_text(json.dumps(keys_json(cfg, pgp, root, certs, ssh), indent=1) + "\n")
